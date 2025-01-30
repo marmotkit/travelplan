@@ -20,7 +20,11 @@ import {
   Chip,
   Alert,
   CircularProgress,
-  Divider
+  Divider,
+  DialogTitle,
+  DialogContent,
+  FormControl,
+  InputLabel
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -37,7 +41,7 @@ const STATUS_MAP = {
 };
 
 const BudgetList = () => {
-  const [items, setItems] = useState([]);
+  const [budgets, setBudgets] = useState([]);
   const [activities, setActivities] = useState([]);
   const [selectedActivity, setSelectedActivity] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
@@ -58,32 +62,76 @@ const BudgetList = () => {
   });
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
+  const [selectedBudget, setSelectedBudget] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const fetchActivities = async () => {
+  const loadData = async () => {
     try {
-      const data = await planApi.getAll();
-      setActivities(data);
+      setIsLoading(true);
+      console.log('開始載入數據...');
+      const activitiesRes = await planApi.getAll();
+      console.log('活動數據:', activitiesRes.data);
+
+      if (!Array.isArray(activitiesRes.data)) {
+        console.error('活動數據格式錯誤:', activitiesRes.data);
+        setActivities([]);
+        return;
+      }
+
+      const validActivities = activitiesRes.data.filter(activity => 
+        activity.status === 'planning' || activity.status === 'ongoing'
+      );
+      console.log('有效活動:', validActivities);
+      setActivities(validActivities);
     } catch (error) {
-      console.error('Error fetching activities:', error);
-      setError('載入活動失敗');
+      console.error('載入數據失敗:', error);
+      console.error('錯誤詳情:', error.response?.data || error.message);
+      setError('載入數據失敗');
+      setActivities([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchActivities();
+    loadData();
   }, []);
 
   useEffect(() => {
     if (selectedActivity) {
       loadBudgets();
+    } else {
+      setBudgets([]);
+      setSummary({
+        twdTotal: '',
+        thbTotal: '',
+        exchangeRate: '',
+        finalTotal: '',
+        note: ''
+      });
     }
   }, [selectedActivity]);
 
   const loadBudgets = async () => {
     try {
-      const data = await budgetApi.getByActivity(selectedActivity);
-      setItems(data.items || []);
-      setSummary(data.summary || {
+      setIsLoading(true);
+      console.log('載入活動預算:', selectedActivity);
+      const response = await budgetApi.getByActivity(selectedActivity);
+      console.log('取得預算資料:', response.data);
+      if (!response.data) {
+        console.warn('未找到預算數據');
+        setBudgets([]);
+        setSummary({
+          twdTotal: '',
+          thbTotal: '',
+          exchangeRate: '',
+          finalTotal: '',
+          note: ''
+        });
+        return;
+      }
+      setBudgets(response.data?.items || []);
+      setSummary(response.data?.summary || {
         twdTotal: '',
         thbTotal: '',
         exchangeRate: '',
@@ -93,6 +141,8 @@ const BudgetList = () => {
     } catch (error) {
       console.error('Error loading budgets:', error);
       setError('載入預算資料失敗');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -154,19 +204,15 @@ const BudgetList = () => {
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data);
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
       
-      const validRows = jsonData.slice(1).filter(row => 
-        row.length > 0 && row[0] && row[1]
-      );
-      
-      const newItems = validRows.map(row => ({
-        type: row[0] || '固定支出',
-        item: row[1] || '',
-        amount: row[2] || '',
-        currency: row[3] || 'TWD',
-        status: row[4] || 'pending',
-        note: row[5] || ''
+      const newItems = jsonData.map(row => ({
+        type: row['類型'] || '固定支出',
+        item: row['項目'] || '',
+        amount: row['金額'] || '',
+        currency: row['幣別'] || 'TWD',
+        status: (row['狀態'] || 'pending').toLowerCase(),
+        note: row['備註'] || ''
       }));
 
       if (newItems.length === 0) {
@@ -175,7 +221,14 @@ const BudgetList = () => {
 
       if (selectedActivity) {
         console.log('Saving items:', newItems);
-        const response = await budgetApi.saveItems(selectedActivity, newItems, summary);
+        const response = await budgetApi.saveItems(selectedActivity, newItems, {
+          twdTotal: '',
+          thbTotal: '',
+          exchangeRate: '',
+          finalTotal: '',
+          note: ''
+        });
+        console.log('保存成功:', response.data);
         await loadBudgets();
         setError('上傳成功');
       }
@@ -238,7 +291,8 @@ const BudgetList = () => {
     }
 
     try {
-      await budgetApi.saveItems(selectedActivity, items, summary);
+      await budgetApi.saveItems(selectedActivity, budgets, summary);
+      await loadBudgets();
       setError('總費用儲存成功');
     } catch (error) {
       console.error('Error saving summary:', error);
@@ -329,7 +383,7 @@ const BudgetList = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {items.filter(item => item.type === '固定支出').map((item) => (
+            {budgets.filter(item => item.type === '固定支出').map((item) => (
               <TableRow key={item._id}>
                 <TableCell>{item.item}</TableCell>
                 <TableCell>{item.amount}</TableCell>
@@ -380,7 +434,7 @@ const BudgetList = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {items.filter(item => item.type === '觀光活動').map((item) => (
+            {budgets.filter(item => item.type === '觀光活動').map((item) => (
               <TableRow key={item._id}>
                 <TableCell>{item.item}</TableCell>
                 <TableCell>{item.amount}</TableCell>

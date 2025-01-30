@@ -1,86 +1,63 @@
 const Plan = require('../models/Plan');
-const { BudgetSummary } = require('../models/Budget');
+const Budget = require('../models/Budget');
 
 exports.getYearlyStats = async (req, res) => {
   try {
-    console.log('Fetching yearly stats...');
-    
-    // 取得所有活動
-    const activities = await Plan.find().lean();
-    console.log('Found activities:', activities);
+    console.log('Getting yearly stats...');
+    const currentYear = new Date().getFullYear();
+    const startDate = new Date(currentYear, 0, 1);
+    const endDate = new Date(currentYear, 11, 31);
 
-    // 按年份分組統計活動數量
-    const activityStats = {};
-    activities.forEach(activity => {
-      try {
-        if (activity.startDate) {
-          const year = new Date(activity.startDate).getFullYear();
-          if (!isNaN(year)) {
-            activityStats[year] = (activityStats[year] || 0) + 1;
-          }
-        }
-      } catch (err) {
-        console.error('Error processing activity:', activity, err);
-      }
+    // 獲取年度活動統計
+    const activities = await Plan.find({
+      startDate: { $gte: startDate, $lte: endDate }
     });
-    console.log('Activity stats:', activityStats);
 
-    // 取得所有預算總額
-    const budgets = await BudgetSummary.find().populate({
-      path: 'activityId',
-      model: 'Plan',  // 明確指定 model
-      select: 'startDate'
-    }).lean();
-    console.log('Found budgets:', budgets);
+    console.log('Found activities:', activities.length);
 
-    // 按年份分組統計預算
-    const budgetStats = {};
-    budgets.forEach(budget => {
-      try {
-        if (budget.activityId?.startDate && budget.finalTotal) {
-          const year = new Date(budget.activityId.startDate).getFullYear();
-          if (!isNaN(year)) {
-            const cleanAmount = budget.finalTotal.toString().replace(/[^0-9.-]+/g, '');
-            const amount = parseFloat(cleanAmount);
-            if (!isNaN(amount)) {
-              budgetStats[year] = (budgetStats[year] || 0) + amount;
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Error processing budget:', budget, err);
-      }
+    // 獲取年度預算統計
+    const activityIds = activities.map(a => a._id);
+    
+    // 根據活動 ID 獲取預算
+    const budgets = await Budget.find({
+      activityId: { $in: activityIds }
     });
-    console.log('Budget stats:', budgetStats);
 
-    // 取得當前年份
-    const startYear = 2025;
-    
-    // 生成最近5年的年份列表（包含當前年份）
-    const yearList = Array.from(
-      { length: 5 }, 
-      (_, i) => startYear - i
-    );
-    
-    // 組合統計數據
-    const stats = yearList.map(year => ({
-      year,
-      activityCount: activityStats[year] || 0,
-      totalBudget: Math.round(budgetStats[year] || 0)
-    }));
+    console.log('Found budgets:', budgets.length);
 
-    console.log('Generated stats:', stats);
+    // 計算總預算
+    const totalBudget = budgets.reduce((sum, budget) => {
+      // 使用預算管理中的總費用合計
+      if (budget.summary && budget.summary.finalTotal) {
+        const amount = parseFloat(budget.summary.finalTotal.toString().replace(/[^0-9.-]+/g, ''));
+        return sum + (isNaN(amount) ? 0 : amount);
+      }
+      return sum;
+    }, 0);
+
+    console.log('Total budget calculation:', {
+      budgetCount: budgets.length,
+      totalBudget,
+      budgetSummaries: budgets.map(b => ({
+        activityId: b.activityId,
+        finalTotal: b.summary?.finalTotal
+      }))
+    });
+
+    // 計算統計數據
+    const stats = {
+      totalActivities: activities.length,
+      plannedActivities: activities.filter(a => a.status === 'planning').length,
+      ongoingActivities: activities.filter(a => a.status === 'ongoing').length,
+      completedActivities: activities.filter(a => a.status === 'completed').length,
+      totalBudget
+    };
+
+    console.log('Calculated stats:', stats);
     res.json(stats);
+    
   } catch (error) {
     console.error('Error in getYearlyStats:', error);
-    // 返回更詳細的錯誤信息
-    res.status(500).json({ 
-      message: '載入統計資料失敗',
-      error: {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      }
-    });
+    res.status(500).json({ message: error.message });
   }
 }; 

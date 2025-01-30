@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { UNSAFE_NavigationContext } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -6,13 +6,15 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import zhTW from 'date-fns/locale/zh-TW';
 import Layout from './components/Layout';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
-import PlanList from './pages/PlanList';
-import PlanDetail from './pages/PlanDetail';
-import PlanForm from './pages/PlanForm';
-import PlanOverview from './pages/PlanOverview';
+import PlanRoutes from './routes/PlanRoutes';
 import AccommodationList from './pages/AccommodationList';
 import BudgetList from './pages/BudgetList';
+import Login from './pages/Login';
+import UserManagement from './pages/UserManagement';
+import { authApi } from './services/authApi';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const theme = createTheme({
   palette: {
@@ -30,23 +32,28 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
-        <Router future={{ 
-          v7_relativeSplatPath: true,
-          v7_startTransition: true 
-        }}>
-          <Layout>
+        <ErrorBoundary>
+          <Router>
             <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/plans" element={<PlanList />} />
-              <Route path="/plans/overview" element={<PlanOverview />} />
-              <Route path="/plans/new" element={<PlanForm />} />
-              <Route path="/plans/:id/edit" element={<PlanForm />} />
-              <Route path="/plans/:id" element={<PlanDetail />} />
-              <Route path="/accommodations" element={<AccommodationList />} />
-              <Route path="/budgets" element={<BudgetList />} />
+              <Route path="/login" element={<Login />} />
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <Layout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Navigate to="/dashboard" replace />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="users" element={<UserManagement />} />
+                <Route path="plans/*" element={<PlanRoutes />} />
+                <Route path="accommodations" element={<AccommodationList />} />
+                <Route path="budgets" element={<BudgetList />} />
+              </Route>
             </Routes>
-          </Layout>
-        </Router>
+          </Router>
+        </ErrorBoundary>
       </LocalizationProvider>
     </ThemeProvider>
   );

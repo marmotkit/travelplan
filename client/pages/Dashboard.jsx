@@ -37,6 +37,7 @@ import {
 } from 'recharts';
 import { Edit as EditIcon } from '@mui/icons-material';
 import axios from 'axios';
+import { api } from '../services/api';
 
 const API_URL = 'http://localhost:5000/api';
 
@@ -54,38 +55,55 @@ const Dashboard = () => {
   const [editingType, setEditingType] = useState(''); // 'expenses' 或 'notices'
   const [editingData, setEditingData] = useState(null);
 
-  // 載入活動列表
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/dashboard/yearly-stats');
+      console.log('Received stats:', response.data);
+      const statsArray = [{
+        year: new Date().getFullYear(),
+        activityCount: response.data.totalActivities,
+        plannedCount: response.data.plannedActivities,
+        ongoingCount: response.data.ongoingActivities,
+        completedCount: response.data.completedActivities,
+        totalBudget: response.data.totalBudget
+      }];
+      setStats(statsArray);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      setError('載入統計資料失敗');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchActivities = async () => {
     try {
-      const response = await axios.get(`${API_URL}/plans`);
+      setLoading(true);
+      const response = await api.get('/plans');
       setActivities(response.data);
     } catch (error) {
       console.error('Error fetching activities:', error);
-      setError('載入活動列表失敗');
+      setError('無法載入活動數據');
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const loadData = async () => {
       try {
         setLoading(true);
-        setError('');
-        const response = await axios.get(`${API_URL}/dashboard/yearly-stats`);
-        console.log('Received stats:', response.data);
-        setStats(response.data);
-      } catch (error) {
-        console.error('Error fetching stats:', error);
-        const errorMessage = error.response?.data?.message || 
-          error.message || 
-          '載入統計資料失敗';
-        setError(errorMessage);
+        await Promise.all([
+          fetchStats(),
+          fetchActivities()
+        ]);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchStats();
-    fetchActivities();  // 同時載入活動列表
+    
+    loadData();
   }, []);
 
   // 格式化圓餅圖數據
@@ -97,7 +115,7 @@ const Dashboard = () => {
   // 載入旅遊資訊
   const loadTravelInfo = async (activityId) => {
     try {
-      const response = await axios.get(`${API_URL}/travel-info/activity/${activityId}`);
+      const response = await api.get(`/travel-info/activity/${activityId}`);
       setTravelInfo(response.data);
     } catch (error) {
       console.error('Error loading travel info:', error);
@@ -131,8 +149,8 @@ const Dashboard = () => {
         [editingType]: editingData
       };
       
-      await axios.put(
-        `${API_URL}/travel-info/activity/${selectedActivity}`,
+      await api.put(
+        `/travel-info/activity/${selectedActivity}`,
         updatedInfo
       );
       
@@ -153,7 +171,7 @@ const Dashboard = () => {
     );
   }
 
-  if (!loading && (!stats || stats.length === 0)) {
+  if (!stats || stats.length === 0) {
     return (
       <Box>
         <Typography variant="h4" gutterBottom>
@@ -219,18 +237,38 @@ const Dashboard = () => {
             <Typography variant="h6" gutterBottom>
               年度活動支出統計 (TWD)
             </Typography>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={stats}>
+            <ResponsiveContainer width="100%" height={400}>
+              <BarChart 
+                data={stats}
+                margin={{
+                  top: 40,    // 增加頂部空間
+                  right: 30,
+                  left: 20,
+                  bottom: 5
+                }}
+              >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="year" />
-                <YAxis />
+                <XAxis 
+                  dataKey="year"
+                  axisLine={true}
+                  tickLine={true}
+                />
+                <YAxis
+                  axisLine={true}
+                  tickLine={true}
+                  domain={[0, 'auto']}  // 自動調整最大值
+                />
                 <Tooltip formatter={(value) => `${value.toLocaleString()} TWD`} />
                 <Legend />
                 <Bar dataKey="totalBudget" name="總支出" fill="#82ca9d">
                   <LabelList 
                     dataKey="totalBudget" 
-                    position="top" 
+                    position="inside"
+                    fill="#fff"
                     formatter={(value) => `${(value/1000).toFixed(0)}K`}
+                    style={{
+                      textShadow: '0 0 3px #000'
+                    }}
                   />
                 </Bar>
               </BarChart>

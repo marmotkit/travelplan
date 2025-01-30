@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutlet } from 'react-router-dom';
 import {
   Box,
   Drawer,
@@ -16,33 +16,84 @@ import {
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
-  List as ListIcon,
-  Add as AddIcon,
   ListAlt as ListAltIcon,
-  Description as DescriptionIcon,
   Hotel as HotelIcon,
-  MonetizationOn as MonetizationOnIcon,
+  AttachMoney as AttachMoneyIcon,
+  People as PeopleIcon,
+  Logout as LogoutIcon
 } from '@mui/icons-material';
+import { authApi } from '../services/authApi';
+import Footer from './Footer';
 
 const drawerWidth = 240;
 
-export default function Layout({ children }) {
+export default function Layout() {
+  const outlet = useOutlet();  // 直接使用 useOutlet
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
-
-  const menuItems = [
-    { text: '儀表板', path: '/', icon: <DashboardIcon /> },
-    { text: '活動管理', path: '/plans', icon: <ListAltIcon /> },
-    { text: '行程管理', path: '/plans/overview', icon: <DescriptionIcon /> },
-    { text: '住宿管理', path: '/accommodations', icon: <HotelIcon /> },
-    { text: '預算管理', path: '/budgets', icon: <MonetizationOnIcon /> },
+  const isAdmin = authApi.isAdmin();
+  const [version, setVersion] = useState(() => {
+    return localStorage.getItem('appVersion') || '1.0';
+  });
+  
+  const adminMenuItems = [
+    { text: '用戶管理', icon: <PeopleIcon />, path: '/users' }
   ];
+  
+  const userMenuItems = [
+    { text: '儀表板', icon: <DashboardIcon />, path: '/dashboard' },
+    { text: '活動管理', icon: <ListAltIcon />, path: '/plans' },
+    { text: '住宿管理', icon: <HotelIcon />, path: '/accommodations' },
+    { text: '預算管理', icon: <AttachMoneyIcon />, path: '/budgets' }
+  ];
+
+  const menuItems = isAdmin ? adminMenuItems : userMenuItems;
+
+  const handleLogout = () => {
+    authApi.logout();
+    navigate('/login');
+  };
+
+  const handleMenuClick = (path) => {
+    console.log('點擊菜單項:', path);
+    console.log('當前用戶角色:', isAdmin ? 'admin' : 'user');
+    navigate(path);
+  };
+
+  const handleVersionClick = (e) => {
+    e.preventDefault();
+    const [major, minor] = version.split('.');
+    let newVersion;
+    
+    if (e.button === 0) { // 左鍵點擊
+      if (minor === '9') {
+        newVersion = `${parseInt(major) + 1}.0`;
+      } else {
+        newVersion = `${major}.${parseInt(minor) + 1}`;
+      }
+    } else if (e.button === 2) { // 右鍵點擊
+      if (minor === '0') {
+        if (major !== '1') {
+          newVersion = `${parseInt(major) - 1}.9`;
+        } else {
+          newVersion = '1.0';
+        }
+      } else {
+        newVersion = `${major}.${parseInt(minor) - 1}`;
+      }
+    }
+    
+    if (newVersion) {
+      setVersion(newVersion);
+      localStorage.setItem('appVersion', newVersion);
+    }
+  };
 
   const drawer = (
     <div>
       <Toolbar>
         <Typography variant="h6" noWrap>
-          旅遊行程管理
+          {isAdmin ? '管理員後台' : '旅遊行程管理'}
         </Typography>
       </Toolbar>
       <Divider />
@@ -51,12 +102,16 @@ export default function Layout({ children }) {
           <ListItem 
             button 
             key={item.text} 
-            onClick={() => navigate(item.path)}
+            onClick={() => handleMenuClick(item.path)}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>
             <ListItemText primary={item.text} />
           </ListItem>
         ))}
+        <ListItem button onClick={handleLogout}>
+          <ListItemIcon><LogoutIcon /></ListItemIcon>
+          <ListItemText primary="登出" />
+        </ListItem>
       </List>
     </div>
   );
@@ -73,9 +128,28 @@ export default function Layout({ children }) {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div">
-            旅遊行程管理系統
-          </Typography>
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            width: '100%'
+          }}>
+            <Typography variant="h6" noWrap component="div">
+              {isAdmin ? '旅遊行程管理系統 - 管理員' : '旅遊行程管理系統'}
+            </Typography>
+            <Typography 
+              variant="subtitle1"
+              onMouseDown={handleVersionClick}
+              onContextMenu={(e) => e.preventDefault()}
+              sx={{ 
+                cursor: 'pointer',
+                userSelect: 'none',
+                color: 'inherit'
+              }}
+            >
+              V{version}
+            </Typography>
+          </Box>
         </Toolbar>
       </AppBar>
       <Box component="nav" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
@@ -111,7 +185,9 @@ export default function Layout({ children }) {
           marginTop: '64px',
         }}
       >
-        {children}
+        <Toolbar />
+        {outlet}  {/* 使用 outlet 而不是 children */}
+        <Footer />
       </Box>
     </Box>
   );
