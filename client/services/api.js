@@ -1,14 +1,15 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://travelplan.onrender.com/api';
+// 移除 /api 後綴，因為我們會在各個請求中添加
+const BASE_URL = import.meta.env.VITE_API_URL?.replace(/\/api$/, '') || 'https://travelplan.onrender.com';
 
-if (!API_URL) {
+if (!BASE_URL) {
   console.error('API URL not configured! Please check .env file');
 }
 
 // 創建 axios 實例
 export const api = axios.create({
-  baseURL: API_URL,
+  baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json'
   },
@@ -80,10 +81,10 @@ api.interceptors.response.use(
 export const testApi = {
   test: async () => {
     try {
-      console.log('API URL:', API_URL);
-      console.log('Making test request to:', `${API_URL}/test`);
+      console.log('Base URL:', BASE_URL);
+      console.log('Making test request to:', `${BASE_URL}/api/test`);
       
-      const response = await api.get('/test');
+      const response = await api.get('/api/test');
       console.log('Test response:', response.data);
       return response;
     } catch (error) {
@@ -92,8 +93,8 @@ export const testApi = {
         status: error.response?.status,
         data: error.response?.data,
         url: error.config?.url,
-        baseURL: API_URL,
-        fullUrl: `${API_URL}${error.config?.url}`
+        baseURL: BASE_URL,
+        fullUrl: `${BASE_URL}${error.config?.url}`
       });
       throw error;
     }
@@ -101,50 +102,50 @@ export const testApi = {
 };
 
 export const planApi = {
-  getAll: () => api.get('/plans'),
-  getById: (id) => api.get(`/plans/${id}`),
-  create: (data) => api.post('/plans', data),
-  update: (id, data) => api.put(`/plans/${id}`, data),
-  delete: (id) => api.delete(`/plans/${id}`),
-  downloadPDF: (id) => api.get(`/plans/${id}/pdf`, { responseType: 'blob' }),
+  getAll: () => api.get('/api/plans'),
+  getById: (id) => api.get(`/api/plans/${id}`),
+  create: (data) => api.post('/api/plans', data),
+  update: (id, data) => api.put(`/api/plans/${id}`, data),
+  delete: (id) => api.delete(`/api/plans/${id}`),
+  downloadPDF: (id) => api.get(`/api/plans/${id}/pdf`, { responseType: 'blob' }),
 };
 
 export const accommodationApi = {
-  getAll: () => api.get('/accommodations'),
-  getByActivity: (activityId) => api.get(`/accommodations/activity/${activityId}`),
-  create: (data) => api.post('/accommodations', data),
-  update: (id, data) => api.put(`/accommodations/${id}`, data),
-  delete: (id) => api.delete(`/accommodations/${id}`),
-  patch: (path, data) => api.patch(`/accommodations${path}`, data),
-  saveItems: (activityId, items) => api.post('/accommodations/batch', { activityId, items })
+  getAll: () => api.get('/api/accommodations'),
+  getByActivity: (activityId) => api.get(`/api/accommodations/activity/${activityId}`),
+  create: (data) => api.post('/api/accommodations', data),
+  update: (id, data) => api.put(`/api/accommodations/${id}`, data),
+  delete: (id) => api.delete(`/api/accommodations/${id}`),
+  patch: (path, data) => api.patch(`/api/accommodations${path}`, data),
+  saveItems: (activityId, items) => api.post('/api/accommodations/batch', { activityId, items })
 };
 
 export const budgetApi = {
-  getAll: () => api.get('/budgets'),
-  getByActivity: (activityId) => api.get(`/budgets/activity/${activityId}`),
-  create: (data) => api.post('/budgets', data),
-  update: (id, data) => api.put(`/budgets/${id}`, data),
-  delete: (id) => api.delete(`/budgets/${id}`),
-  updateStatus: (id, status) => api.patch(`/budgets/${id}/status`, { status }),
-  saveItems: (activityId, items, summary) => api.post('/budgets/batch', { activityId, items, summary })
+  getAll: () => api.get('/api/budgets'),
+  getByActivity: (activityId) => api.get(`/api/budgets/activity/${activityId}`),
+  create: (data) => api.post('/api/budgets', data),
+  update: (id, data) => api.put(`/api/budgets/${id}`, data),
+  delete: (id) => api.delete(`/api/budgets/${id}`),
+  updateStatus: (id, status) => api.patch(`/api/budgets/${id}/status`, { status }),
+  saveItems: (activityId, items, summary) => api.post('/api/budgets/batch', { activityId, items, summary })
 };
 
 export const dashboardApi = {
-  getSummary: () => api.get('/dashboard/summary')
+  getSummary: () => api.get('/api/dashboard/summary')
 };
 
 export const tripItemApi = {
-  getAll: () => api.get('/trip-items'),
-  getByActivity: (activityId) => api.get(`/trip-items/activity/${activityId}`),
-  create: (data) => api.post('/trip-items', data),
-  update: (id, data) => api.put(`/trip-items/${id}`, data),
-  delete: (id) => api.delete(`/trip-items/${id}`)
+  getAll: () => api.get('/api/trip-items'),
+  getByActivity: (activityId) => api.get(`/api/trip-items/activity/${activityId}`),
+  create: (data) => api.post('/api/trip-items', data),
+  update: (id, data) => api.put(`/api/trip-items/${id}`, data),
+  delete: (id) => api.delete(`/api/trip-items/${id}`)
 };
 
 export const travelInfoApi = {
-  getAll: () => api.get('/travel-info'),
-  getByActivity: (activityId) => api.get(`/travel-info/activity/${activityId}`),
-  create: (data) => api.post('/travel-info', data),
-  update: (id, data) => api.put(`/travel-info/${id}`, data),
-  delete: (id) => api.delete(`/travel-info/${id}`)
+  getAll: () => api.get('/api/travel-info'),
+  getByActivity: (activityId) => api.get(`/api/travel-info/activity/${activityId}`),
+  create: (data) => api.post('/api/travel-info', data),
+  update: (id, data) => api.put(`/api/travel-info/${id}`, data),
+  delete: (id) => api.delete(`/api/travel-info/${id}`)
 }; 
