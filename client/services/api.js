@@ -78,7 +78,7 @@ api.interceptors.response.use(
 
 // 添加測試 API
 export const testApi = {
-  test: () => api.get('/test').catch(error => {
+  test: () => api.get('/api/test').catch(error => {
     console.error('Test API Error:', {
       message: error.message,
       status: error.response?.status,
