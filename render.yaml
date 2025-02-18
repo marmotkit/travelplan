@@ -3,7 +3,6 @@ services:
   - type: web
     name: travel-planner-api
     env: node
-    rootDir: server
     buildCommand: |
       echo "=== Build Info ==="
       echo "Current directory: $(pwd)"
@@ -13,7 +12,7 @@ services:
       echo "NPM version: $(npm --version)"
       
       echo "=== Installing Dependencies ==="
-      cd /opt/render/project/src/server
+      cd server
       rm -rf node_modules package-lock.json
       npm install
       
@@ -30,8 +29,7 @@ services:
       cd "$(dirname "$0")"
       NODE_ENV=production node index.js' > start.sh
       chmod +x start.sh
-    startCommand: |
-      cd /opt/render/project/src/server && node index.js
+    startCommand: cd server && node index.js
     envVars:
       - key: PORT
         value: 5001

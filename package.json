@@ -1,12 +1,14 @@
 {
-  "name": "travel-plan",
+  "name": "travel-planner",
   "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "server",
+    "client"
+  ],
   "scripts": {
-    "dev": "vite --host",
-    "build": "vite build",
-    "preview": "vite preview",
-    "server": "node server/index.js",
-    "server:dev": "nodemon server/index.js"
+    "start": "cd server && node index.js",
+    "build": "cd server && npm install"
   },
   "dependencies": {
     "@emotion/react": "^11.11.0",
