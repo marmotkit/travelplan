@@ -29,9 +29,9 @@ services:
       pwd
       ls -la
       echo "Creating models directory..."
-      mkdir -p /opt/render/project/src/server/models
+      mkdir -p models
       echo "Creating accommodation model..."
-      cat > /opt/render/project/src/server/models/accommodation.js << 'EOL'
+      cat > models/accommodation.js << 'EOL'
       const mongoose = require('mongoose');
       const accommodationSchema = new mongoose.Schema({
         activityId: { type: mongoose.Schema.Types.ObjectId, ref: 'Activity', required: true },
@@ -45,10 +45,10 @@ services:
       module.exports = mongoose.model('Accommodation', accommodationSchema);
       EOL
       echo "Model file contents:"
-      cat /opt/render/project/src/server/models/accommodation.js
+      cat models/accommodation.js
       echo "Directory structure:"
-      ls -R /opt/render/project/src/server/
-    startCommand: cd server && node index.js
+      ls -R .
+    startCommand: cd server && NODE_PATH=/opt/render/project/src/server node index.js
     envVars:
       - key: PORT
         value: 5001
