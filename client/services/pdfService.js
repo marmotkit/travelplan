@@ -1,7 +1,7 @@
 // 先引入核心功能
-import * as pdfMake from "pdfmake/build/pdfmake";
+import pdfMake from 'pdfmake/build/pdfmake';
 // 再引入字型
-import * as pdfFonts from 'pdfmake/build/vfs_fonts';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
 
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
@@ -9,13 +9,18 @@ import { zhTW } from 'date-fns/locale';
 // 設定虛擬檔案系統和字型
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
-// 定義字型配置
-const fonts = {
+// 設置中文字體
+pdfMake.fonts = {
+  Roboto: {
+    normal: 'Roboto-Regular.ttf',
+    bold: 'Roboto-Medium.ttf',
+    italics: 'Roboto-Italic.ttf',
+    bolditalics: 'Roboto-MediumItalic.ttf'
+  },
+  // 添加思源黑體
   NotoSansTC: {
-    normal: 'https://fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.otf',
-    bold: 'https://fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.otf',
-    italics: 'https://fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.otf',
-    bolditalics: 'https://fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.otf'
+    normal: 'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-tc@4.5.12/files/noto-sans-tc-all-400-normal.woff',
+    bold: 'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-tc@4.5.12/files/noto-sans-tc-all-700-normal.woff',
   }
 };
 
@@ -34,9 +39,6 @@ const docDefinition = {
     fontSize: 12
   }
 };
-
-// 初始化 pdfMake 配置
-pdfMake.fonts = fonts;
 
 // 新增日期檢查和格式化函數
 const isValidDate = (date) => {

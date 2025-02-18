@@ -14,7 +14,8 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
           mui: ['@mui/material', '@mui/icons-material'],
-          charts: ['recharts']
+          charts: ['recharts'],
+          pdf: ['pdfmake']
         }
       }
     }
@@ -24,5 +25,6 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['pdfmake/build/pdfmake', 'pdfmake/build/vfs_fonts']
-  }
+  },
+  publicDir: 'public'
 });
