@@ -4,12 +4,11 @@ services:
     name: travel-planner-api
     env: node
     rootDir: server
-    runtime: node@16.x
     buildCommand: |
       echo "Current directory: $(pwd)"
       echo "Node version: $(node --version)"
-      echo "Installing dependencies..."
-      npm install
+      echo "Installing dependencies in $(pwd)..."
+      NODE_ENV=production npm ci
       echo "Node_modules contents:"
       ls -la node_modules
       echo "Checking jsonwebtoken:"
@@ -17,7 +16,7 @@ services:
     startCommand: |
       echo "Starting from directory: $(pwd)"
       echo "Node version: $(node --version)"
-      node index.js
+      NODE_ENV=production node index.js
     envVars:
       - key: PORT
         value: 5001
@@ -33,12 +32,9 @@ services:
     name: travel-planner-web
     env: static
     rootDir: client
-    runtime: node@16.x
     buildCommand: |
       echo "Node version: $(node --version)"
-      echo "Installing dependencies..."
-      npm install
-      echo "Building..."
+      npm ci
       npm run build
     staticPublishPath: dist
     routes:
