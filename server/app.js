@@ -13,22 +13,42 @@ const accommodationRoutes = require('./routes/accommodationRoutes');
 
 const app = express();
 
-// 基本的 CORS 配置
-app.use(cors());
+// 從環境變數獲取允許的域名
+const allowedOrigins = [
+  'https://travel-planner-web.onrender.com',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173'
+];
 
-// 添加必要的 headers
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  
-  // 處理 OPTIONS 請求
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
+// CORS 配置
+app.use(cors({
+  origin: function(origin, callback) {
+    console.log('Request origin:', origin);
+    
+    // 允許沒有 origin 的請求（例如 Postman）
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log('Origin not allowed:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false
+}));
+
+// 預檢請求處理
+app.options('*', (req, res) => {
+  console.log('Handling OPTIONS request');
+  res.sendStatus(204);
 });
 
+// Body parser
 app.use(express.json());
 
 // Health check endpoint

@@ -7,20 +7,28 @@ if (!BASE_URL) {
   console.error('API URL not configured! Please check .env file');
 }
 
+console.log('API Base URL:', BASE_URL);
+
 // 創建 axios 實例
 export const api = axios.create({
   baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  timeout: 10000  // 10 秒超時
 });
 
 // 請求攔截器
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    console.log('Request interceptor - token:', token ? '存在' : '不存在');
-    console.log('Request config:', config);
+    console.log('Request:', {
+      url: config.url,
+      method: config.method,
+      headers: config.headers,
+      data: config.data,
+      hasToken: !!token
+    });
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -29,7 +37,7 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error('Request interceptor error:', error);
+    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
@@ -37,19 +45,33 @@ api.interceptors.request.use(
 // 響應攔截器
 api.interceptors.response.use(
   (response) => {
+    console.log('Response:', {
+      url: response.config.url,
+      status: response.status,
+      data: response.data
+    });
     return response;
   },
   (error) => {
-    console.error('Response error:', error);
-    if (error.response) {
-      console.error('Response status:', error.response.status);
-      console.error('Response data:', error.response.data);
-    } else if (error.request) {
-      console.error('No response received:', error.request);
-    } else {
-      console.error('Error setting up request:', error.message);
+    console.error('Response error:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+    
+    // 處理 401 錯誤
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
     }
-    return Promise.reject(error);
+    
+    return Promise.reject({
+      message: error.response?.data?.message || error.message,
+      status: error.response?.status,
+      data: error.response?.data
+    });
   }
 );
 
