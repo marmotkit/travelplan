@@ -25,13 +25,13 @@ services:
       ls -la node_modules/mongoose
       
       echo "=== Verifying Project Structure ==="
-      echo "Project root:"
+      echo "Current directory:"
       pwd
       ls -la
       echo "Creating models directory..."
-      mkdir -p models
+      mkdir -p /opt/render/project/src/server/models
       echo "Creating accommodation model..."
-      cat > models/accommodation.js << 'EOL'
+      cat > /opt/render/project/src/server/models/accommodation.js << 'EOL'
       const mongoose = require('mongoose');
       const accommodationSchema = new mongoose.Schema({
         activityId: { type: mongoose.Schema.Types.ObjectId, ref: 'Activity', required: true },
@@ -45,10 +45,8 @@ services:
       module.exports = mongoose.model('Accommodation', accommodationSchema);
       EOL
       echo "Model file contents:"
-      cat models/accommodation.js
-      echo "Moving model file to correct location..."
-      mv models/accommodation.js /opt/render/project/src/server/models/
-      echo "Final directory structure:"
+      cat /opt/render/project/src/server/models/accommodation.js
+      echo "Directory structure:"
       ls -R /opt/render/project/src/server/
     startCommand: cd server && node index.js
     envVars:
