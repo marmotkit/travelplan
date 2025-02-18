@@ -78,14 +78,18 @@ api.interceptors.response.use(
 
 // 添加測試 API
 export const testApi = {
-  test: () => api.get('/api/test').catch(error => {
-    console.error('Test API Error:', {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data
+  test: () => {
+    console.log('Testing API URL:', API_URL); // 添加日誌
+    return api.get('test').catch(error => {
+      console.error('Test API Error:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        url: error.config?.url
+      });
+      throw error;
     });
-    throw error;
-  })
+  }
 };
 
 export const planApi = {
