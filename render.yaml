@@ -5,6 +5,7 @@ services:
     buildCommand: |
       cd server
       npm install
+      mkdir -p config
       echo 'module.exports = {
         port: process.env.PORT || 5001,
         mongoUri: process.env.MONGO_URI || "mongodb://localhost:27017/travel_planner",
@@ -12,8 +13,10 @@ services:
         jwtExpiresIn: "24h",
         nodeEnv: process.env.NODE_ENV || "development"
       };' > config/config.js
+      ls -la config/
     startCommand: |
       cd server
+      ls -la config/
       node index.js
     envVars:
       - key: PORT
