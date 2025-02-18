@@ -32,18 +32,30 @@ app.use((req, res, next) => {
   next();
 });
 
-// CORS 配置
-app.use(cors({
-  origin: allowedOrigins,
+// CORS 預檢請求處理
+app.options('*', cors({
+  origin: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false
+  credentials: false,
+  maxAge: 86400
 }));
 
-// 預檢請求處理
-app.options('*', (req, res) => {
-  console.log('Handling OPTIONS request');
-  res.sendStatus(204);
+// CORS 配置
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  console.log('Request origin:', origin);
+
+  if (!origin || allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin || '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Max-Age', '86400');
+  } else {
+    console.log('Origin not allowed:', origin);
+  }
+
+  next();
 });
 
 // Body parser
