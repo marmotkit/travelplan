@@ -12,7 +12,8 @@ export const api = axios.create({
   headers: {
     'Content-Type': 'application/json'
   },
-  withCredentials: true
+  withCredentials: true,
+  timeout: 10000  // 10 秒超時
 });
 
 // 請求攔截器
@@ -25,7 +26,21 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    console.log('Request config:', config);
+    // 添加時間戳防止緩存
+    if (config.method === 'get') {
+      config.params = {
+        ...config.params,
+        _t: Date.now()
+      };
+    }
+    
+    console.log('Request config:', {
+      url: config.url,
+      method: config.method,
+      headers: config.headers,
+      data: config.data
+    });
+    
     return config;
   },
   (error) => {
@@ -36,14 +51,27 @@ api.interceptors.request.use(
 
 // 響應攔截器
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('Response:', {
+      status: response.status,
+      headers: response.headers,
+      data: response.data
+    });
+    return response;
+  },
   (error) => {
+    console.error('Response error:', {
+      message: error.message,
+      response: error.response,
+      config: error.config
+    });
+    
     if (error.response?.status === 401) {
-      // 未認證，清除本地存儲並重定向到登入頁
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
     }
+    
     return Promise.reject(error);
   }
 );

@@ -13,15 +13,28 @@ const accommodationRoutes = require('./routes/accommodationRoutes');
 
 const app = express();
 
-// 簡化的 CORS 配置
+// 更具體的 CORS 配置
 app.use(cors({
-  origin: true, // 允許所有來源
+  origin: 'https://travel-planner-web.onrender.com',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Length', 'X-Requested-With']
 }));
 
+// 添加額外的安全頭部
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://travel-planner-web.onrender.com');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  next();
+});
+
 app.use(express.json());
+
+// 添加一個測試路由
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'API is working' });
+});
 
 // 公開路由
 app.use('/api/users', userRoutes);
