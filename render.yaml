@@ -48,7 +48,7 @@ services:
       cat models/accommodation.js
       echo "Directory structure:"
       ls -R .
-    startCommand: cd server && NODE_PATH=/opt/render/project/src/server node index.js
+    startCommand: cd server && NODE_PATH=./models node index.js
     envVars:
       - key: PORT
         value: 5001
