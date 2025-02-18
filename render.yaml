@@ -17,15 +17,13 @@ services:
       - key: NODE_ENV
         value: production
     routes:
-      - type: rewrite
-        source: /test
-        destination: /test
-      - type: rewrite
-        source: /health
-        destination: /health
-      - type: rewrite
-        source: /api/*
-        destination: /api/$1
+      - type: web
+        plan: free
+        domain: travelplan.onrender.com
+        paths:
+          - "/"
+          - "/health"
+          - "/api/*"
 
   # 前端服務
   - type: static
@@ -42,4 +40,4 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        value: https://travel-planner-api.onrender.com/api
+        value: https://travelplan.onrender.com

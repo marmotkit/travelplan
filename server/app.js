@@ -29,7 +29,11 @@ app.use(express.json());
 
 // 根路由
 app.get('/', (req, res) => {
-  res.json({ message: 'Travel Planner API' });
+  res.json({ 
+    message: 'Travel Planner API',
+    version: '1.0.0',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // 健康檢查路由
@@ -37,7 +41,8 @@ app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
-    env: process.env.NODE_ENV
+    env: process.env.NODE_ENV,
+    uptime: process.uptime()
   });
 });
 
