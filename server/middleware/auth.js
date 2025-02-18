@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 
+// 認證中間件
 const auth = (req, res, next) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -16,11 +17,15 @@ const auth = (req, res, next) => {
   }
 };
 
-module.exports = auth;
-
-exports.adminOnly = async (req, res, next) => {
-  if (req.user.role !== 'admin') {
+// 管理員權限中間件
+const adminOnly = (req, res, next) => {
+  if (!req.user || req.user.role !== 'admin') {
     return res.status(403).json({ message: '需要管理員權限' });
   }
   next();
+};
+
+module.exports = {
+  auth,
+  adminOnly
 }; 
