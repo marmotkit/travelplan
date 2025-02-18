@@ -21,7 +21,9 @@ exports.login = async (req, res) => {
       console.log('Missing credentials:', { 
         username: !!username, 
         password: !!password,
-        body: req.body 
+        body: req.body,
+        rawBody: req.rawBody,
+        contentType: req.headers['content-type']
       });
       return res.status(400).json({ message: '請提供用戶名和密碼' });
     }
@@ -33,6 +35,7 @@ exports.login = async (req, res) => {
       userId: user?._id,
       userRole: user?.role,
       hasPassword: !!user?.password,
+      passwordLength: user?.password?.length,
       timestamp: new Date().toISOString()
     });
     
@@ -47,7 +50,13 @@ exports.login = async (req, res) => {
     }
     
     // 檢查密碼是否正確
-    console.log('Attempting password comparison for user:', username);
+    console.log('Attempting password comparison:', {
+      username,
+      inputPasswordLength: password.length,
+      storedPasswordLength: user.password.length,
+      timestamp: new Date().toISOString()
+    });
+
     let isMatch = false;
     try {
       isMatch = await user.comparePassword(password);
@@ -59,6 +68,7 @@ exports.login = async (req, res) => {
     } catch (error) {
       console.error('Password comparison error:', {
         error: error.message,
+        stack: error.stack,
         username,
         timestamp: new Date().toISOString()
       });
@@ -66,11 +76,22 @@ exports.login = async (req, res) => {
     }
 
     if (!isMatch) {
-      console.log('Password mismatch:', username);
+      console.log('Password mismatch:', {
+        username,
+        inputPasswordLength: password.length,
+        storedPasswordLength: user.password.length,
+        timestamp: new Date().toISOString()
+      });
       return res.status(401).json({ message: '用戶名或密碼錯誤' });
     }
 
     // 生成 JWT token
+    console.log('Generating JWT token:', {
+      userId: user._id,
+      role: user.role,
+      timestamp: new Date().toISOString()
+    });
+
     const token = jwt.sign(
       { id: user._id, role: user.role },
       jwtSecret,
@@ -81,6 +102,7 @@ exports.login = async (req, res) => {
       username,
       userId: user._id,
       role: user.role,
+      tokenLength: token.length,
       timestamp: new Date().toISOString()
     });
 
@@ -97,6 +119,8 @@ exports.login = async (req, res) => {
     console.error('Login error:', {
       error: error.message,
       stack: error.stack,
+      body: req.body,
+      headers: req.headers,
       timestamp: new Date().toISOString()
     });
     res.status(500).json({ message: '登入過程中發生錯誤' });
