@@ -7,8 +7,9 @@
     "client"
   ],
   "scripts": {
-    "start": "cd server && node index.js",
-    "build": "cd server && npm install"
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test:api": "node scripts/test-api.js"
   },
   "dependencies": {
     "@emotion/react": "^11.11.0",
@@ -30,7 +31,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.0.0",
-    "nodemon": "^3.1.9",
+    "nodemon": "^2.0.22",
     "vite": "^4.3.5"
   },
   "main": "vite.config.js",
