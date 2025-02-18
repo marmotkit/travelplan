@@ -23,13 +23,13 @@ services:
       ls -la node_modules/jsonwebtoken
       ls -la node_modules/express
       ls -la node_modules/mongoose
-    startCommand: |
-      echo "=== Starting Server ==="
-      echo "Current directory: $(pwd)"
-      echo "Directory contents:"
-      ls -la
-      echo "Node version: $(node --version)"
-      NODE_ENV=production node index.js
+      
+      echo "=== Creating start script ==="
+      echo '#!/bin/sh
+      cd "$(dirname "$0")"
+      NODE_ENV=production node index.js' > start.sh
+      chmod +x start.sh
+    startCommand: ./start.sh
     envVars:
       - key: PORT
         value: 5001
