@@ -13,27 +13,23 @@ console.log('API Base URL:', BASE_URL);
 export const api = axios.create({
   baseURL: BASE_URL,
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
   },
-  timeout: 10000  // 10 秒超時
+  timeout: 10000,  // 10 秒超時
+  withCredentials: false  // 不需要憑證
 });
 
 // 請求攔截器
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
     console.log('Request:', {
       url: config.url,
       method: config.method,
       headers: config.headers,
       data: config.data,
-      hasToken: !!token
+      hasToken: !!config.headers.Authorization
     });
-    
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    
     return config;
   },
   (error) => {
@@ -59,19 +55,7 @@ api.interceptors.response.use(
       data: error.response?.data,
       message: error.message
     });
-    
-    // 處理 401 錯誤
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-    }
-    
-    return Promise.reject({
-      message: error.response?.data?.message || error.message,
-      status: error.response?.status,
-      data: error.response?.data
-    });
+    return Promise.reject(error);
   }
 );
 
