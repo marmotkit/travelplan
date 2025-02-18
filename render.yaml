@@ -24,11 +24,12 @@ services:
       ls -la node_modules/express
       ls -la node_modules/mongoose
       
-      echo "=== Creating start script ==="
-      echo '#!/bin/sh
-      cd "$(dirname "$0")"
-      NODE_ENV=production node index.js' > start.sh
-      chmod +x start.sh
+      echo "=== Setting up config ==="
+      echo "module.exports = {
+        jwtSecret: process.env.JWT_SECRET,
+        mongoUri: process.env.MONGO_URI,
+        port: process.env.PORT || 5001
+      };" > config/config.js
     startCommand: cd server && node index.js
     envVars:
       - key: PORT
