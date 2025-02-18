@@ -1,6 +1,9 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
-const config = require('../config/config');
+
+// 直接使用環境變數，不再依賴 config.js
+const jwtSecret = process.env.JWT_SECRET || 'your_very_secure_jwt_secret';
+const jwtExpiresIn = '24h';
 
 exports.login = async (req, res) => {
   try {
@@ -42,8 +45,8 @@ exports.login = async (req, res) => {
     // 如果都正確，創建 token
     const token = jwt.sign(
       { id: user._id, role: user.role },
-      config.jwtSecret,
-      { expiresIn: '24h' }
+      jwtSecret,
+      { expiresIn: jwtExpiresIn }
     );
     
     console.log('Login successful:', {

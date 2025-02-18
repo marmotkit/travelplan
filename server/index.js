@@ -3,13 +3,9 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 
 // 直接使用環境變數
-const config = {
-  port: process.env.PORT || 5001,
-  mongoUri: process.env.MONGO_URI || 'mongodb://localhost:27017/travel_planner',
-  jwtSecret: process.env.JWT_SECRET || 'your_jwt_secret_here',
-  jwtExpiresIn: '24h',
-  nodeEnv: process.env.NODE_ENV || 'development'
-};
+const port = process.env.PORT || 5001;
+const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/travel_planner';
+const nodeEnv = process.env.NODE_ENV || 'development';
 
 const planRoutes = require('./routes/planRoutes');
 const tripItemRoutes = require('./routes/tripItemRoutes');
@@ -68,7 +64,7 @@ process.on('warning', (warning) => {
 });
 
 // Database connection
-mongoose.connect(config.mongoUri, {
+mongoose.connect(mongoUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   serverSelectionTimeoutMS: 10000,
@@ -77,8 +73,8 @@ mongoose.connect(config.mongoUri, {
 })
   .then(() => {
     console.log('Connected to MongoDB');
-    app.listen(config.port, () => {
-      console.log(`Server is running on port ${config.port}`);
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
     });
   })
   .catch(err => {

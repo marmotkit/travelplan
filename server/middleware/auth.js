@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
 
+const jwtSecret = process.env.JWT_SECRET || 'your_very_secure_jwt_secret';
+
 // 認證中間件
 const auth = (req, res, next) => {
   try {
@@ -9,7 +11,7 @@ const auth = (req, res, next) => {
       return res.status(401).json({ message: '未提供認證令牌' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, jwtSecret);
     req.user = decoded;
     next();
   } catch (error) {
