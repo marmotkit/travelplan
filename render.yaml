@@ -5,11 +5,24 @@ services:
     env: node
     rootDir: server
     buildCommand: |
+      echo "Current directory:"
       pwd
+      echo "\nDirectory contents:"
       ls -la
+      echo "\nPackage.json contents:"
+      cat package.json
+      echo "\nInstalling dependencies..."
       npm install --production
-      ls -la node_modules/jsonwebtoken
-    startCommand: node index.js
+      echo "\nNode_modules contents:"
+      ls -la node_modules
+      echo "\nChecking jsonwebtoken:"
+      ls -la node_modules/jsonwebtoken || echo "jsonwebtoken not found"
+    startCommand: |
+      echo "Starting server from:"
+      pwd
+      echo "\nDirectory contents:"
+      ls -la
+      node index.js
     envVars:
       - key: PORT
         value: 5001
@@ -19,6 +32,8 @@ services:
         value: your_very_secure_jwt_secret
       - key: NODE_ENV
         value: production
+      - key: DEBUG
+        value: "true"
 
   # 前端服務
   - type: static

@@ -83,4 +83,8 @@ mongoose.connect(config.mongoUri, {
   })
   .catch(err => {
     console.error('MongoDB connection error:', err);
-  }); 
+  });
+
+// 添加在文件開頭
+console.log('Current working directory:', process.cwd());
+console.log('Node modules directory:', require.resolve('jsonwebtoken')); 
