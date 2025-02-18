@@ -60,8 +60,38 @@ app.get('/health', (req, res) => {
   });
 });
 
+// 測試路由
+app.get('/api/test', (req, res) => {
+  console.log('Test endpoint hit:', {
+    headers: req.headers,
+    method: req.method,
+    path: req.path,
+    origin: req.headers.origin
+  });
+  
+  res.json({
+    message: 'Test endpoint working',
+    time: new Date().toISOString(),
+    headers: req.headers,
+    cors: {
+      origin: req.headers.origin,
+      method: req.method,
+      allowedOrigins
+    }
+  });
+});
+
 // API routes
-app.use('/api/users', userRoutes);
+app.use('/api/users', (req, res, next) => {
+  console.log('User routes hit:', {
+    method: req.method,
+    path: req.path,
+    origin: req.headers.origin,
+    headers: req.headers
+  });
+  next();
+}, userRoutes);
+
 app.use('/api/plans', planRoutes);
 app.use('/api/trip-items', tripItemRoutes);
 app.use('/api/accommodations', accommodationRoutes);
@@ -75,16 +105,6 @@ app.get('/', (req, res) => {
     message: 'Travel Planner API',
     version: '1.0.0',
     timestamp: new Date().toISOString()
-  });
-});
-
-// 測試路由 - 放在 API 路由下
-app.get('/api/test', (req, res) => {
-  console.log('Test route accessed');
-  res.json({ 
-    message: 'API is working',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV
   });
 });
 
