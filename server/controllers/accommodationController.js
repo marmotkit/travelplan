@@ -1,4 +1,4 @@
-const Accommodation = require('../models/accommodation');
+const Accommodation = require('../models/Accommodation');
 
 exports.createMany = async (req, res) => {
   try {
