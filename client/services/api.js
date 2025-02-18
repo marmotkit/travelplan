@@ -11,10 +11,8 @@ if (!BASE_URL) {
 export const api = axios.create({
   baseURL: BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  },
-  withCredentials: false  // 改為 false，因為我們使用 token 認證
+    'Content-Type': 'application/json'
+  }
 });
 
 // 請求攔截器
@@ -28,14 +26,6 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    // 添加時間戳防止緩存
-    if (config.method === 'get') {
-      config.params = {
-        ...config.params,
-        _t: Date.now()
-      };
-    }
-    
     return config;
   },
   (error) => {
@@ -47,33 +37,18 @@ api.interceptors.request.use(
 // 響應攔截器
 api.interceptors.response.use(
   (response) => {
-    console.log('Response:', {
-      status: response.status,
-      headers: response.headers,
-      data: response.data
-    });
     return response;
   },
   (error) => {
     console.error('Response error:', error);
     if (error.response) {
-      // 服務器回應了請求，但狀態碼不在 2xx 範圍內
       console.error('Response status:', error.response.status);
       console.error('Response data:', error.response.data);
     } else if (error.request) {
-      // 請求已發出，但沒有收到回應
       console.error('No response received:', error.request);
     } else {
-      // 在設置請求時發生了錯誤
       console.error('Error setting up request:', error.message);
     }
-    
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-    }
-    
     return Promise.reject(error);
   }
 );

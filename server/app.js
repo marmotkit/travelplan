@@ -13,28 +13,21 @@ const accommodationRoutes = require('./routes/accommodationRoutes');
 
 const app = express();
 
-// 首先應用 CORS，在所有中間件之前
-const corsOptions = {
-  origin: [
-    'https://travel-planner-web.onrender.com',
-    'http://localhost:5173',
-    'http://127.0.0.1:5173'
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: [
-    'Content-Type', 
-    'Authorization',
-    'X-Requested-With',
-    'Accept',
-    'Origin'
-  ],
-  credentials: false
-};
+// 基本的 CORS 配置
+app.use(cors());
 
-app.use(cors(corsOptions));
-
-// 在 OPTIONS 請求時直接返回 200
-app.options('*', cors(corsOptions));
+// 添加必要的 headers
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
+  // 處理 OPTIONS 請求
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 app.use(express.json());
 
