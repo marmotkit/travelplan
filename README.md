@@ -79,39 +79,33 @@
 
 ## 部署說明
 
-### 後端服務
-1. 環境要求：
-   - Node.js 16.x
-   - npm 8.x
+### 環境要求
+- Node.js 18.19.0
+- npm 10.2.3
+- MongoDB Atlas 帳號
 
-2. 環境變數：
-   - PORT: 5001
-   - MONGO_URI: MongoDB 連接字串
-   - JWT_SECRET: JWT 密鑰
-   - NODE_ENV: production
+### 部署步驟
+1. 在 Render.com 創建帳號並連接 GitHub
+2. 創建新的 Web Service (後端)：
+   - 選擇倉庫
+   - 設置名稱: travel-planner-api
+   - 設置環境變數：
+     ```
+     PORT=5001
+     MONGO_URI=你的MongoDB連接字串
+     JWT_SECRET=你的JWT密鑰
+     NODE_ENV=production
+     ```
 
-3. 安裝依賴：
-   ```bash
-   cd server
-   npm install
-   ```
+3. 創建新的 Static Site (前端)：
+   - 選擇倉庫
+   - 設置名稱: travel-planner-web
+   - 設置環境變數：
+     ```
+     VITE_API_URL=https://travel-planner-api.onrender.com/api
+     ```
 
-4. 啟動服務：
-   ```bash
-   npm start
-   ```
-
-### 前端服務
-1. 環境變數：
-   - VITE_API_URL: 後端 API 的完整 URL
-
-2. 安裝依賴：
-   ```bash
-   cd client
-   npm install
-   ```
-
-3. 構建：
-   ```bash
-   npm run build
-   ```
+### 故障排除
+- 確保 MongoDB Atlas IP 白名單已設置
+- 檢查 Render.com 的構建日誌
+- 確認環境變數設置正確

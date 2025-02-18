@@ -5,22 +5,31 @@ services:
     env: node
     rootDir: server
     buildCommand: |
+      echo "=== Build Info ==="
       echo "Current directory: $(pwd)"
+      echo "Directory contents:"
+      ls -la
       echo "Node version: $(node --version)"
-      echo "Installing dependencies in $(pwd)..."
+      echo "NPM version: $(npm --version)"
+      
+      echo "=== Installing Dependencies ==="
+      rm -rf node_modules package-lock.json
       npm install
-      echo "Node_modules contents:"
+      
+      echo "=== Verifying Installation ==="
+      echo "node_modules contents:"
       ls -la node_modules
-      echo "Checking jsonwebtoken:"
-      ls -la node_modules/jsonwebtoken || echo "jsonwebtoken not found"
-      echo "Moving node_modules to correct location..."
-      mv node_modules /opt/render/project/src/server/
+      echo "Checking key dependencies:"
+      ls -la node_modules/jsonwebtoken
+      ls -la node_modules/express
+      ls -la node_modules/mongoose
     startCommand: |
-      echo "Starting from directory: $(pwd)"
+      echo "=== Starting Server ==="
+      echo "Current directory: $(pwd)"
+      echo "Directory contents:"
+      ls -la
       echo "Node version: $(node --version)"
-      echo "Checking node_modules:"
-      ls -la node_modules
-      node index.js
+      NODE_ENV=production node index.js
     envVars:
       - key: PORT
         value: 5001
@@ -37,8 +46,15 @@ services:
     env: static
     rootDir: client
     buildCommand: |
+      echo "=== Build Info ==="
+      echo "Current directory: $(pwd)"
       echo "Node version: $(node --version)"
+      
+      echo "=== Installing Dependencies ==="
+      rm -rf node_modules package-lock.json
       npm install
+      
+      echo "=== Building ==="
       npm run build
     staticPublishPath: dist
     routes:
