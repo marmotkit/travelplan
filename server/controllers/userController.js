@@ -7,16 +7,22 @@ const jwtExpiresIn = '24h';
 
 exports.login = async (req, res) => {
   try {
-    const { username, password } = req.body;
-    console.log('Login attempt:', { 
-      username,
-      requestBody: req.body,
+    console.log('Login endpoint hit:', {
+      path: req.path,
+      method: req.method,
       headers: req.headers,
+      body: req.body,
       timestamp: new Date().toISOString()
     });
+
+    const { username, password } = req.body;
     
     if (!username || !password) {
-      console.log('Missing credentials:', { username: !!username, password: !!password });
+      console.log('Missing credentials:', { 
+        username: !!username, 
+        password: !!password,
+        body: req.body 
+      });
       return res.status(400).json({ message: '請提供用戶名和密碼' });
     }
 
@@ -58,28 +64,26 @@ exports.login = async (req, res) => {
       });
       return res.status(500).json({ message: '密碼驗證錯誤' });
     }
-    
+
     if (!isMatch) {
-      console.log('Password incorrect for user:', username);
+      console.log('Password mismatch:', username);
       return res.status(401).json({ message: '用戶名或密碼錯誤' });
     }
-    
-    // 創建 token
-    const tokenPayload = {
-      id: user._id,
-      role: user.role,
-      username: user.username
-    };
-    
-    const token = jwt.sign(tokenPayload, jwtSecret, { expiresIn: jwtExpiresIn });
+
+    // 生成 JWT token
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      jwtSecret,
+      { expiresIn: jwtExpiresIn }
+    );
+
     console.log('Login successful:', {
       username,
       userId: user._id,
       role: user.role,
       timestamp: new Date().toISOString()
     });
-    
-    // 返回用戶信息和 token
+
     res.json({
       token,
       user: {
@@ -89,7 +93,6 @@ exports.login = async (req, res) => {
         role: user.role
       }
     });
-    
   } catch (error) {
     console.error('Login error:', {
       error: error.message,
@@ -103,6 +106,14 @@ exports.login = async (req, res) => {
 // 只有管理員可以使用的用戶管理功能
 exports.createUser = async (req, res) => {
   try {
+    console.log('Create user endpoint hit:', {
+      path: req.path,
+      method: req.method,
+      headers: req.headers,
+      body: req.body,
+      timestamp: new Date().toISOString()
+    });
+
     const { username, password, name, role } = req.body;
     
     const user = new User({
@@ -113,6 +124,13 @@ exports.createUser = async (req, res) => {
     });
     
     await user.save();
+    console.log('User created:', {
+      userId: user._id,
+      username: user.username,
+      name: user.name,
+      role: user.role,
+      timestamp: new Date().toISOString()
+    });
     res.status(201).json({
       message: '用戶創建成功',
       user: {
@@ -123,24 +141,52 @@ exports.createUser = async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Create user error:', {
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
     res.status(500).json({ message: '創建用戶失敗', error: error.message });
   }
 };
 
 exports.getAllUsers = async (req, res) => {
   try {
-    console.log('收到獲取用戶列表請求');
+    console.log('Get all users endpoint hit:', {
+      path: req.path,
+      method: req.method,
+      headers: req.headers,
+      query: req.query,
+      timestamp: new Date().toISOString()
+    });
+
     const users = await User.find({}, '-password');
-    console.log('查詢到的用戶數量:', users.length);
+    console.log('Users retrieved:', {
+      count: users.length,
+      timestamp: new Date().toISOString()
+    });
     res.json(users);
   } catch (error) {
-    console.error('獲取用戶列表失敗:', error);
+    console.error('Get all users error:', {
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
     res.status(500).json({ message: '獲取用戶列表失敗', error: error.message });
   }
 };
 
 exports.updateUser = async (req, res) => {
   try {
+    console.log('Update user endpoint hit:', {
+      path: req.path,
+      method: req.method,
+      headers: req.headers,
+      body: req.body,
+      params: req.params,
+      timestamp: new Date().toISOString()
+    });
+
     const { id } = req.params;
     const { name, role, isActive, password } = req.body;
     
@@ -156,21 +202,51 @@ exports.updateUser = async (req, res) => {
     );
     
     if (!user) {
+      console.log('User not found:', id);
       return res.status(404).json({ message: '用戶不存在' });
     }
-    
+
+    console.log('User updated:', {
+      userId: user._id,
+      username: user.username,
+      name: user.name,
+      role: user.role,
+      timestamp: new Date().toISOString()
+    });
     res.json(user);
   } catch (error) {
+    console.error('Update user error:', {
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
     res.status(500).json({ message: '更新用戶失敗', error: error.message });
   }
 };
 
 exports.deleteUser = async (req, res) => {
   try {
+    console.log('Delete user endpoint hit:', {
+      path: req.path,
+      method: req.method,
+      headers: req.headers,
+      params: req.params,
+      timestamp: new Date().toISOString()
+    });
+
     const { id } = req.params;
     await User.findByIdAndUpdate(id, { isActive: false });
+    console.log('User deleted:', {
+      userId: id,
+      timestamp: new Date().toISOString()
+    });
     res.json({ message: '用戶已停用' });
   } catch (error) {
+    console.error('Delete user error:', {
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
     res.status(500).json({ message: '停用用戶失敗', error: error.message });
   }
 }; 
