@@ -41,6 +41,9 @@ export default defineConfig({
     include: ['react', 'react-dom']
   },
   esbuild: {
-    logOverride: { 'this-is-undefined-in-esm': 'silent' }
+    logOverride: {
+      'this-is-undefined-in-esm': 'silent',
+      'use-client-directive': 'silent'
+    }
   }
 });

@@ -4,11 +4,13 @@ const https = require('https');
 // 部署測試配置
 const DEPLOY_URL = 'https://api.travel-planner.onrender.com';
 
-// 創建自定義的 HTTPS agent
+// 創建自定義的 HTTPS agent，使用 Node.js 18 的配置
 const httpsAgent = new https.Agent({
-  rejectUnauthorized: false,  // 在測試環境中允許自簽名證書
+  rejectUnauthorized: false,
+  ciphers: 'TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384',
   minVersion: 'TLSv1.2',
-  maxVersion: 'TLSv1.3'
+  maxVersion: 'TLSv1.3',
+  honorCipherOrder: true
 });
 
 const testDeploy = async () => {
@@ -24,11 +26,12 @@ const testDeploy = async () => {
     const axiosConfig = {
       headers: {
         'Accept': 'application/json',
-        'User-Agent': 'Travel-Planner-Test/1.0'
+        'User-Agent': 'Travel-Planner-Test/1.0',
+        'Connection': 'keep-alive'
       },
       httpsAgent,
       timeout: 10000,
-      validateStatus: status => status < 500 // 允許非 500 錯誤
+      validateStatus: status => status < 500
     };
     
     // 測試健康檢查
@@ -40,7 +43,8 @@ const testDeploy = async () => {
       console.warn('健康檢查失敗，繼續測試其他端點...');
       console.warn('錯誤詳情:', {
         message: error.message,
-        status: error.response?.status
+        status: error.response?.status,
+        code: error.code
       });
     }
 
@@ -53,9 +57,10 @@ const testDeploy = async () => {
       console.warn('API 測試失敗');
       console.warn('錯誤詳情:', {
         message: error.message,
-        status: error.response?.status
+        status: error.response?.status,
+        code: error.code
       });
-      throw error; // 重新拋出錯誤以觸發主錯誤處理
+      throw error;
     }
     
     console.log('\n✅ 部署測試通過！');
