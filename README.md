@@ -76,3 +76,42 @@
 
 ### 測試帳號
 - 管理員：admin / admin123
+
+## 部署說明
+
+### 後端服務
+1. 環境要求：
+   - Node.js 16.x
+   - npm 8.x
+
+2. 環境變數：
+   - PORT: 5001
+   - MONGO_URI: MongoDB 連接字串
+   - JWT_SECRET: JWT 密鑰
+   - NODE_ENV: production
+
+3. 安裝依賴：
+   ```bash
+   cd server
+   npm install
+   ```
+
+4. 啟動服務：
+   ```bash
+   npm start
+   ```
+
+### 前端服務
+1. 環境變數：
+   - VITE_API_URL: 後端 API 的完整 URL
+
+2. 安裝依賴：
+   ```bash
+   cd client
+   npm install
+   ```
+
+3. 構建：
+   ```bash
+   npm run build
+   ```
