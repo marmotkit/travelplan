@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// 移除 /api 後綴，因為我們會在各個請求中添加
-const BASE_URL = import.meta.env.VITE_API_URL?.replace(/\/api$/, '') || 'https://travelplan.onrender.com';
+// 使用正確的域名
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://travelplan-llmo.onrender.com';
 
 if (!BASE_URL) {
   console.error('API URL not configured! Please check .env file');
