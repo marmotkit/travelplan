@@ -13,6 +13,7 @@ services:
       echo "NPM version: $(npm --version)"
       
       echo "=== Installing Dependencies ==="
+      cd /opt/render/project/src/server
       rm -rf node_modules package-lock.json
       npm install
       
@@ -29,7 +30,8 @@ services:
       cd "$(dirname "$0")"
       NODE_ENV=production node index.js' > start.sh
       chmod +x start.sh
-    startCommand: ./start.sh
+    startCommand: |
+      cd /opt/render/project/src/server && node index.js
     envVars:
       - key: PORT
         value: 5001
