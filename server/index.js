@@ -12,6 +12,16 @@ const port = process.env.PORT || 5001;
 const mongoUri = process.env.MONGO_URI;
 const nodeEnv = process.env.NODE_ENV || 'development';
 
+console.log('Starting server with configuration:', {
+  environment: nodeEnv,
+  port: port,
+  mongoUri: mongoUri ? mongoUri.replace(/:[^:]*@/, ':****@') : undefined
+});
+
+// Middleware
+app.use(express.json());
+
+// Routes
 const planRoutes = require('./routes/planRoutes');
 const tripItemRoutes = require('./routes/tripItemRoutes');
 const accommodationRoutes = require('./routes/accommodationRoutes');
@@ -19,10 +29,6 @@ const budgetRoutes = require('./routes/budgetRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const travelInfoRoutes = require('./routes/travelInfoRoutes');
 
-// Middleware
-app.use(express.json());
-
-// Routes
 app.use('/api/plans', planRoutes);
 app.use('/api/trip-items', tripItemRoutes);
 app.use('/api/accommodations', accommodationRoutes);
@@ -69,28 +75,36 @@ process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
 });
 
-// Database connection
-mongoose.connect(mongoUri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 10000,
-  retryWrites: true,
-  dbName: 'travel_planner'
-})
+// 添加更多日誌
+console.log('啟動服務器...');
+
+// 連接到 MongoDB
+mongoose.connect(mongoUri)
   .then(() => {
     console.log('Connected to MongoDB');
     
     // 啟動服務器
     app.listen(port, '0.0.0.0', () => {
       console.log(`Server is running on port ${port}`);
-      console.log('Environment:', nodeEnv);
-      console.log('MongoDB URI:', mongoUri.replace(/\/\/[^:]+:[^@]+@/, '//')); // 隱藏敏感信息
+      console.log(`Environment: ${nodeEnv}`);
+      console.log('可用的路由:');
+      console.log('- GET /');
+      console.log('- GET /health');
+      console.log('- GET /api/test');
     });
   })
-  .catch(err => {
-    console.error('MongoDB connection error:', err);
+  .catch((error) => {
+    console.error('MongoDB connection error:', error);
     process.exit(1);
   });
+
+mongoose.connection.on('error', (error) => {
+  console.error('MongoDB connection error:', error);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('MongoDB disconnected');
+});
 
 // 添加進程終止處理
 process.on('SIGTERM', () => {

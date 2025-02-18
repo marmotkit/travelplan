@@ -54,6 +54,24 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok',
+    time: new Date().toISOString(),
+    env: process.env.NODE_ENV
+  });
+});
+
+// API routes
+app.use('/api/users', userRoutes);
+app.use('/api/plans', planRoutes);
+app.use('/api/trip-items', tripItemRoutes);
+app.use('/api/accommodations', accommodationRoutes);
+app.use('/api/budgets', budgetRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/travel-info', travelInfoRoutes);
+
 // 根路由
 app.get('/', (req, res) => {
   res.json({ 
@@ -61,22 +79,6 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     timestamp: new Date().toISOString()
   });
-});
-
-// 健康檢查路由
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    env: process.env.NODE_ENV,
-    uptime: process.uptime()
-  });
-});
-
-// API 路由
-app.use('/api', (req, res, next) => {
-  console.log(`API Request: ${req.method} ${req.path}`);
-  next();
 });
 
 // 測試路由 - 放在 API 路由下
@@ -88,15 +90,6 @@ app.get('/api/test', (req, res) => {
     environment: process.env.NODE_ENV
   });
 });
-
-// 其他 API 路由
-app.use('/api/users', userRoutes);
-app.use('/api/plans', auth, planRoutes);
-app.use('/api/trip-items', auth, tripItemRoutes);
-app.use('/api/accommodations', auth, accommodationRoutes);
-app.use('/api/budgets', auth, budgetRoutes);
-app.use('/api/dashboard', auth, dashboardRoutes);
-app.use('/api/travel-info', auth, travelInfoRoutes);
 
 // 404 處理
 app.use((req, res) => {
