@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "main": "index.js",
   "engines": {
-    "node": "18.19.0",
-    "npm": "10.2.3"
+    "node": ">=18.0.0",
+    "npm": ">=10.0.0"
   },
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "echo \"Running test route...\" && curl http://localhost:5001/api/test"
+    "build": "echo 'No build step needed'"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

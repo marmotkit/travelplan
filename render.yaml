@@ -3,19 +3,23 @@ services:
   - type: web
     name: travel-planner-api
     env: node
+    region: singapore
+    plan: free
     buildCommand: |
       cd server
       npm install
     startCommand: cd server && node index.js
     envVars:
       - key: PORT
-        value: 5001
+        value: "5001"
       - key: MONGO_URI
         value: mongodb+srv://marmotkk2013:Kingmax00@marmotkit.dlnje.mongodb.net/travel_planner
       - key: JWT_SECRET
         value: your_very_secure_jwt_secret
       - key: NODE_ENV
         value: production
+    healthCheckPath: /health
+    autoDeploy: true
     routes:
       - type: web
         plan: free
@@ -29,15 +33,17 @@ services:
   - type: static
     name: travel-planner-web
     env: static
+    region: singapore
     buildCommand: |
       cd client
       npm install
       npm run build
     staticPublishPath: client/dist
+    autoDeploy: true
+    envVars:
+      - key: VITE_API_URL
+        value: https://travel-planner-api.onrender.com
     routes:
       - type: rewrite
         source: /*
         destination: /index.html
-    envVars:
-      - key: VITE_API_URL
-        value: https://travelplan.onrender.com

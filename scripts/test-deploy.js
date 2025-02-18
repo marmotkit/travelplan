@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 // 部署測試配置
-const DEPLOY_URL = 'https://travelplan.onrender.com';
+const DEPLOY_URL = 'https://travel-planner-api.onrender.com';
 
 const testDeploy = async () => {
   try {
@@ -25,7 +25,8 @@ const testDeploy = async () => {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
-      url: error.config?.url
+      url: error.config?.url,
+      headers: error.config?.headers
     });
     process.exit(1);
   }
