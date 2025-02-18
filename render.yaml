@@ -20,6 +20,8 @@ services:
         value: production
     healthCheckPath: /health
     autoDeploy: true
+    domains:
+      - api.travel-planner.onrender.com
 
   # 前端服務
   - type: static
@@ -32,9 +34,11 @@ services:
       npm run build
     staticPublishPath: client/dist
     autoDeploy: true
+    domains:
+      - travel-planner.onrender.com
     envVars:
       - key: VITE_API_URL
-        value: https://travel-planner-api.onrender.com
+        value: https://api.travel-planner.onrender.com
     routes:
       - type: rewrite
         source: /*

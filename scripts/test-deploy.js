@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 // 部署測試配置
-const DEPLOY_URL = 'https://travel-planner-api.onrender.com';
+const DEPLOY_URL = 'https://api.travel-planner.onrender.com';
 
 const testDeploy = async () => {
   try {
@@ -16,7 +16,8 @@ const testDeploy = async () => {
     console.log('\n1. 測試健康檢查路由...');
     const healthResponse = await axios.get(`${DEPLOY_URL}/health`, {
       headers: {
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'User-Agent': 'Travel-Planner-Test/1.0'
       }
     });
     console.log('健康檢查響應:', healthResponse.data);
@@ -25,7 +26,8 @@ const testDeploy = async () => {
     console.log('\n2. 測試 API 路由...');
     const apiResponse = await axios.get(`${DEPLOY_URL}/api/test`, {
       headers: {
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'User-Agent': 'Travel-Planner-Test/1.0'
       }
     });
     console.log('API 測試響應:', apiResponse.data);
@@ -38,7 +40,10 @@ const testDeploy = async () => {
       status: error.response?.status,
       data: error.response?.data,
       url: error.config?.url,
-      headers: error.config?.headers
+      headers: {
+        request: error.config?.headers,
+        response: error.response?.headers
+      }
     });
     process.exit(1);
   }
