@@ -5,8 +5,13 @@ services:
     buildCommand: |
       cd server
       npm install
-      mkdir -p config
-      cp config/config.js config/
+      echo 'module.exports = {
+        port: process.env.PORT || 5001,
+        mongoUri: process.env.MONGO_URI || "mongodb://localhost:27017/travel_planner",
+        jwtSecret: process.env.JWT_SECRET || "your_jwt_secret_here",
+        jwtExpiresIn: "24h",
+        nodeEnv: process.env.NODE_ENV || "development"
+      };' > config/config.js
     startCommand: |
       cd server
       node index.js

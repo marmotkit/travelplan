@@ -18,7 +18,8 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.11.1",
     "pdfmake": "0.2.7",
-    "@types/pdfmake": "0.2.2"
+    "@types/pdfmake": "0.2.2",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.0.0",
