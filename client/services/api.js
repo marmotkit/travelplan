@@ -7,7 +7,11 @@ if (!BASE_URL) {
   console.error('API URL not configured! Please check .env file');
 }
 
-console.log('API Base URL:', BASE_URL);
+console.log('API Configuration:', {
+  baseUrl: BASE_URL,
+  environment: import.meta.env.MODE,
+  timestamp: new Date().toISOString()
+});
 
 // 創建 axios 實例
 export const api = axios.create({
@@ -23,17 +27,32 @@ export const api = axios.create({
 // 請求攔截器
 api.interceptors.request.use(
   (config) => {
-    console.log('Request:', {
-      url: config.url,
+    const requestId = Math.random().toString(36).substring(7);
+    
+    console.log('API Request:', {
+      id: requestId,
+      url: `${config.baseURL}${config.url}`,
       method: config.method,
       headers: config.headers,
       data: config.data,
-      hasToken: !!config.headers.Authorization
+      hasToken: !!config.headers.Authorization,
+      timestamp: new Date().toISOString()
     });
+
+    // 添加請求 ID 到 headers
+    config.headers['X-Request-ID'] = requestId;
+    
     return config;
   },
   (error) => {
-    console.error('Request error:', error);
+    console.error('Request error:', {
+      error: {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      },
+      timestamp: new Date().toISOString()
+    });
     return Promise.reject(error);
   }
 );
@@ -41,23 +60,61 @@ api.interceptors.request.use(
 // 響應攔截器
 api.interceptors.response.use(
   (response) => {
-    console.log('Response:', {
-      url: response.config.url,
+    console.log('API Response:', {
+      id: response.config.headers['X-Request-ID'],
+      url: `${response.config.baseURL}${response.config.url}`,
+      method: response.config.method,
       status: response.status,
-      data: response.data
+      statusText: response.statusText,
+      headers: response.headers,
+      data: response.data,
+      timestamp: new Date().toISOString()
     });
     return response;
   },
   (error) => {
     console.error('Response error:', {
+      id: error.config?.headers?.['X-Request-ID'],
       url: error.config?.url,
+      method: error.config?.method,
       status: error.response?.status,
+      statusText: error.response?.statusText,
+      headers: error.response?.headers,
       data: error.response?.data,
-      message: error.message
+      error: {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      },
+      timestamp: new Date().toISOString()
     });
     return Promise.reject(error);
   }
 );
+
+// 測試 API 連接
+export const test = async () => {
+  try {
+    console.log('Testing API connection...');
+    const response = await api.get('/health');
+    console.log('API health check successful:', {
+      status: response.status,
+      data: response.data,
+      timestamp: new Date().toISOString()
+    });
+    return response.data;
+  } catch (error) {
+    console.error('API health check failed:', {
+      error: {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      },
+      timestamp: new Date().toISOString()
+    });
+    throw error;
+  }
+};
 
 // 添加測試 API
 export const testApi = {
