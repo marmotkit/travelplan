@@ -76,6 +76,11 @@ api.interceptors.response.use(
   }
 );
 
+// 添加測試 API
+export const testApi = {
+  test: () => api.get('/test')
+};
+
 export const planApi = {
   getAll: () => api.get('/plans'),
   getById: (id) => api.get(`/plans/${id}`),

@@ -13,7 +13,7 @@ const accommodationRoutes = require('./routes/accommodationRoutes');
 
 const app = express();
 
-// 更具體的 CORS 配置
+// CORS 配置
 app.use(cors({
   origin: 'https://travel-planner-web.onrender.com',
   credentials: true,
@@ -22,18 +22,26 @@ app.use(cors({
   exposedHeaders: ['Content-Length', 'X-Requested-With']
 }));
 
-// 添加額外的安全頭部
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://travel-planner-web.onrender.com');
-  res.header('Access-Control-Allow-Credentials', 'true');
+app.use(express.json());
+
+// 健康檢查路由
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
+// API 路由前綴
+app.use('/api', (req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
   next();
 });
 
-app.use(express.json());
-
-// 添加一個測試路由
+// 測試路由
 app.get('/api/test', (req, res) => {
-  res.json({ message: 'API is working' });
+  console.log('Test route accessed');
+  res.json({ 
+    message: 'API is working',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // 公開路由
@@ -47,7 +55,17 @@ app.use('/api/budgets', auth, budgetRoutes);
 app.use('/api/dashboard', auth, dashboardRoutes);
 app.use('/api/travel-info', auth, travelInfoRoutes);
 
-// 錯誤處理中間件
+// 404 處理
+app.use((req, res) => {
+  console.log(`404: ${req.method} ${req.path}`);
+  res.status(404).json({ 
+    message: '找不到該路徑',
+    path: req.path,
+    method: req.method
+  });
+});
+
+// 錯誤處理
 app.use((err, req, res, next) => {
   console.error('Global error handler:', err);
   res.status(500).json({
