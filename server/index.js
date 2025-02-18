@@ -11,7 +11,13 @@ const travelInfoRoutes = require('./routes/travelInfoRoutes');
 const app = require('./app');  // 使用 app.js 中的 app 實例
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'https://travel-planner-web.onrender.com'
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes
@@ -21,6 +27,11 @@ app.use('/api/accommodations', accommodationRoutes);
 app.use('/api/budgets', budgetRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/travel-info', travelInfoRoutes);
+
+// 新增 health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {

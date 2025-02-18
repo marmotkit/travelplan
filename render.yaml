@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: travel-planner-api
+    env: node
+    buildCommand: cd server && npm install
+    startCommand: cd server && npm start
+    envVars:
+      - key: PORT
+        value: 5001
+      - key: MONGO_URI
+        value: mongodb+srv://marmotkk2013:Kingmax00@marmotkit.dlnje.mongodb.net/travel_planner
+      - key: JWT_SECRET
+        value: your_very_secure_jwt_secret
+      - key: NODE_ENV
+        value: production
+
+  - type: static
+    name: travel-planner-web
+    env: static
+    buildCommand: cd client && npm install && npm run build
+    staticPublishPath: client/dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://travel-planner-api.onrender.com/api 

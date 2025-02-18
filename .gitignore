@@ -78,4 +78,7 @@ pids
 *.tgz
 
 # Yarn Integrity file
-.yarn-integrity 
+.yarn-integrity
+
+# New additions
+dist/ 

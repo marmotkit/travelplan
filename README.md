@@ -58,3 +58,11 @@
 - 開發者：KT. Liang
 - 版本：V2.1
 - 更新日期：2025.01
+
+## 部署資訊
+- API 服務：https://travel-planner-api.onrender.com
+- 前端網站：https://travel-planner-web.onrender.com
+- 資料庫：MongoDB Atlas
+
+### 測試帳號
+- 管理員：admin / admin123
