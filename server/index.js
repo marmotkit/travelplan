@@ -1,10 +1,15 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const dotenv = require('dotenv');
+const app = require('./app');
+
+// 加載環境變數
+dotenv.config();
 
 // 直接使用環境變數
 const port = process.env.PORT || 5001;
-const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/travel_planner';
+const mongoUri = process.env.MONGO_URI;
 const nodeEnv = process.env.NODE_ENV || 'development';
 
 const planRoutes = require('./routes/planRoutes');
@@ -13,7 +18,6 @@ const accommodationRoutes = require('./routes/accommodationRoutes');
 const budgetRoutes = require('./routes/budgetRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const travelInfoRoutes = require('./routes/travelInfoRoutes');
-const app = require('./app');  // 使用 app.js 中的 app 實例
 
 // Middleware
 app.use(express.json());
@@ -56,6 +60,15 @@ process.on('warning', (warning) => {
   console.warn(warning.stack);
 });
 
+// 添加基本的錯誤處理
+process.on('unhandledRejection', (error) => {
+  console.error('Unhandled Rejection:', error);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+});
+
 // Database connection
 mongoose.connect(mongoUri, {
   useNewUrlParser: true,
@@ -66,13 +79,32 @@ mongoose.connect(mongoUri, {
 })
   .then(() => {
     console.log('Connected to MongoDB');
-    app.listen(port, () => {
+    
+    // 啟動服務器
+    app.listen(port, '0.0.0.0', () => {
       console.log(`Server is running on port ${port}`);
+      console.log('Environment:', nodeEnv);
+      console.log('MongoDB URI:', mongoUri.replace(/\/\/[^:]+:[^@]+@/, '//')); // 隱藏敏感信息
     });
   })
   .catch(err => {
     console.error('MongoDB connection error:', err);
+    process.exit(1);
   });
+
+// 添加進程終止處理
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received. Shutting down gracefully...');
+  mongoose.connection.close()
+    .then(() => {
+      console.log('MongoDB connection closed.');
+      process.exit(0);
+    })
+    .catch(err => {
+      console.error('Error closing MongoDB connection:', err);
+      process.exit(1);
+    });
+});
 
 // 添加在文件開頭
 console.log('Current working directory:', process.cwd());
