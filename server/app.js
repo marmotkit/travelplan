@@ -27,35 +27,27 @@ app.use((req, res, next) => {
     path: req.path,
     origin: req.headers.origin,
     host: req.headers.host,
-    referer: req.headers.referer
+    referer: req.headers.referer,
+    headers: req.headers
   });
   next();
 });
 
-// CORS 預檢請求處理
-app.options('*', cors({
-  origin: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false,
-  maxAge: 86400
-}));
-
 // CORS 配置
+app.use(cors());
+
+// 確保 CORS headers 被設置
 app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  console.log('Request origin:', origin);
-
-  if (!origin || allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin || '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.header('Access-Control-Max-Age', '86400');
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+  
+  // 處理 OPTIONS 請求
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
   } else {
-    console.log('Origin not allowed:', origin);
+    next();
   }
-
-  next();
 });
 
 // Body parser
