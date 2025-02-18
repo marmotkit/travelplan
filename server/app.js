@@ -28,7 +28,9 @@ app.use((req, res, next) => {
     origin: req.headers.origin,
     host: req.headers.host,
     referer: req.headers.referer,
-    headers: req.headers
+    headers: req.headers,
+    body: req.method === 'POST' ? req.body : undefined,
+    timestamp: new Date().toISOString()
   });
   next();
 });
@@ -40,10 +42,24 @@ app.use(cors());
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Debug-Request');
   
+  // 記錄 CORS 相關信息
+  console.log('CORS Headers:', {
+    origin: req.headers.origin,
+    method: req.method,
+    path: req.path,
+    allowedHeaders: req.headers['access-control-request-headers'],
+    timestamp: new Date().toISOString()
+  });
+
   // 處理 OPTIONS 請求
   if (req.method === 'OPTIONS') {
+    console.log('處理 OPTIONS 請求:', {
+      path: req.path,
+      headers: req.headers,
+      timestamp: new Date().toISOString()
+    });
     res.sendStatus(200);
   } else {
     next();
@@ -54,13 +70,25 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// 請求體解析中間件
+app.use((req, res, next) => {
+  if (req.method === 'POST') {
+    console.log('請求體解析結果:', {
+      path: req.path,
+      body: req.body,
+      contentType: req.headers['content-type'],
+      timestamp: new Date().toISOString()
+    });
+  }
+  next();
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok',
     time: new Date().toISOString(),
     env: process.env.NODE_ENV,
-    origins: allowedOrigins,
     headers: req.headers
   });
 });
@@ -76,12 +104,7 @@ app.get('/api/test', (req, res) => {
   res.json({
     message: '測試端點正常工作',
     time: new Date().toISOString(),
-    headers: req.headers,
-    cors: {
-      origin: req.headers.origin,
-      method: req.method,
-      allowedOrigins
-    }
+    headers: req.headers
   });
 });
 
@@ -118,7 +141,8 @@ app.use((req, res) => {
     method: req.method,
     path: req.path,
     origin: req.headers.origin,
-    headers: req.headers
+    headers: req.headers,
+    timestamp: new Date().toISOString()
   });
   
   res.status(404).json({
@@ -137,7 +161,9 @@ app.use((err, req, res, next) => {
     path: req.path,
     method: req.method,
     origin: req.headers.origin,
-    time: new Date().toISOString()
+    headers: req.headers,
+    body: req.method === 'POST' ? req.body : undefined,
+    timestamp: new Date().toISOString()
   });
   
   res.status(err.status || 500).json({
