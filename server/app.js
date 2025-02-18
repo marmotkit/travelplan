@@ -37,7 +37,13 @@ app.get('/health', (req, res) => {
   });
 });
 
-// 測試路由
+// API 路由
+app.use('/api', (req, res, next) => {
+  console.log(`API Request: ${req.method} ${req.path}`);
+  next();
+});
+
+// 測試路由 - 放在 API 路由下
 app.get('/api/test', (req, res) => {
   console.log('Test route accessed');
   res.json({ 
@@ -47,7 +53,7 @@ app.get('/api/test', (req, res) => {
   });
 });
 
-// API 路由
+// 其他 API 路由
 app.use('/api/users', userRoutes);
 app.use('/api/plans', auth, planRoutes);
 app.use('/api/trip-items', auth, tripItemRoutes);
@@ -62,7 +68,8 @@ app.use((req, res) => {
   res.status(404).json({ 
     message: '找不到該路徑',
     path: req.path,
-    method: req.method
+    method: req.method,
+    timestamp: new Date().toISOString()
   });
 });
 
