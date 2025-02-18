@@ -4,50 +4,8 @@ services:
     name: travel-planner-api
     env: node
     buildCommand: |
-      echo "=== Build Info ==="
-      echo "Current directory: $(pwd)"
-      echo "Directory contents:"
-      ls -la
-      echo "Node version: $(node --version)"
-      echo "NPM version: $(npm --version)"
-      
-      echo "=== Installing Dependencies ==="
       cd server
-      rm -rf node_modules package-lock.json
       npm install
-      
-      echo "=== Verifying Installation ==="
-      echo "node_modules contents:"
-      ls -la node_modules
-      echo "Checking key dependencies:"
-      ls -la node_modules/jsonwebtoken
-      ls -la node_modules/express
-      ls -la node_modules/mongoose
-      
-      echo "=== Verifying Project Structure ==="
-      echo "Current directory:"
-      pwd
-      ls -la
-      echo "Creating models directory..."
-      mkdir -p /opt/render/project/src/server/models
-      echo "Creating accommodation model..."
-      cat > /opt/render/project/src/server/models/accommodation.js << 'EOL'
-      const mongoose = require('mongoose');
-      const accommodationSchema = new mongoose.Schema({
-        activityId: { type: mongoose.Schema.Types.ObjectId, ref: 'Activity', required: true },
-        hotel: { type: String, required: true },
-        address: { type: String, required: true },
-        dateRange: { type: String, required: true },
-        status: { type: String, enum: ['pending', 'confirmed', 'cancelled'], default: 'pending' },
-        price: { type: Number, default: 0 },
-        notes: String
-      }, { timestamps: true });
-      module.exports = mongoose.model('Accommodation', accommodationSchema);
-      EOL
-      echo "Model file contents:"
-      cat /opt/render/project/src/server/models/accommodation.js
-      echo "Directory structure:"
-      ls -R /opt/render/project/src/server/
     startCommand: cd server && node index.js
     envVars:
       - key: PORT
@@ -58,24 +16,26 @@ services:
         value: your_very_secure_jwt_secret
       - key: NODE_ENV
         value: production
+    routes:
+      - type: rewrite
+        source: /test
+        destination: /test
+      - type: rewrite
+        source: /health
+        destination: /health
+      - type: rewrite
+        source: /api/*
+        destination: /api/$1
 
   # 前端服務
   - type: static
     name: travel-planner-web
     env: static
-    rootDir: client
     buildCommand: |
-      echo "=== Build Info ==="
-      echo "Current directory: $(pwd)"
-      echo "Node version: $(node --version)"
-      
-      echo "=== Installing Dependencies ==="
-      rm -rf node_modules package-lock.json
+      cd client
       npm install
-      
-      echo "=== Building ==="
       npm run build
-    staticPublishPath: dist
+    staticPublishPath: client/dist
     routes:
       - type: rewrite
         source: /*
