@@ -4,11 +4,10 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [
     react({
-      jsxRuntime: 'automatic',
-      jsxImportSource: 'react',
+      include: "**/*.{jsx,tsx}",
       babel: {
         plugins: [
-          ['@babel/plugin-transform-react-jsx', { runtime: 'automatic' }]
+          ["@babel/plugin-transform-react-jsx"]
         ]
       }
     })
@@ -16,11 +15,16 @@ export default defineConfig({
   root: './client',
   build: {
     outDir: 'dist',
-    sourcemap: false,
+    sourcemap: true,
     minify: true,
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
+      external: ['react', 'react-dom'],
       output: {
+        globals: {
+          react: 'React',
+          'react-dom': 'ReactDOM'
+        },
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
           mui: ['@mui/material', '@mui/icons-material'],
@@ -31,10 +35,19 @@ export default defineConfig({
     }
   },
   define: {
-    'process.env': {}
+    'process.env': {},
+    'React': 'react'
   },
   optimizeDeps: {
-    include: ['pdfmake/build/pdfmake', 'pdfmake/build/vfs_fonts']
+    include: [
+      'react',
+      'react-dom',
+      'pdfmake/build/pdfmake',
+      'pdfmake/build/vfs_fonts'
+    ]
   },
-  publicDir: 'public'
+  publicDir: 'public',
+  esbuild: {
+    jsxInject: `import React from 'react'`
+  }
 });

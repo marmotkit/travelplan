@@ -1,3 +1,4 @@
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { UNSAFE_NavigationContext } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material';
