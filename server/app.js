@@ -13,11 +13,19 @@ const accommodationRoutes = require('./routes/accommodationRoutes');
 
 const app = express();
 
-// 中間件
-app.use(cors({
-  origin: 'http://localhost:5173', // 前端的 URL
-  credentials: true
-}));
+// 更新 CORS 配置
+const corsOptions = {
+  origin: [
+    'https://travel-planner-web.onrender.com',
+    'http://localhost:5173'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // 公開路由

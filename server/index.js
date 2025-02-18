@@ -15,14 +15,20 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const travelInfoRoutes = require('./routes/travelInfoRoutes');
 const app = require('./app');  // 使用 app.js 中的 app 實例
 
-// Middleware
-app.use(cors({
+// 更新 CORS 配置
+const corsOptions = {
   origin: [
-    'http://localhost:5173',
-    'https://travel-planner-web.onrender.com'
+    'https://travel-planner-web.onrender.com',
+    'http://localhost:5173'  // 開發環境
   ],
-  credentials: true
-}));
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+// Middleware
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Routes
