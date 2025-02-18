@@ -26,8 +26,9 @@ services:
       
       echo "=== Verifying Project Structure ==="
       echo "Project root:"
+      pwd
       ls -la
-      echo "Models directory:"
+      echo "Creating models directory..."
       mkdir -p models
       echo "Creating accommodation model..."
       cat > models/accommodation.js << 'EOL'
@@ -45,6 +46,10 @@ services:
       EOL
       echo "Model file contents:"
       cat models/accommodation.js
+      echo "Moving model file to correct location..."
+      mv models/accommodation.js /opt/render/project/src/server/models/
+      echo "Final directory structure:"
+      ls -R /opt/render/project/src/server/
     startCommand: cd server && node index.js
     envVars:
       - key: PORT
