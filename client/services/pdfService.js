@@ -1,26 +1,36 @@
 // 修改導入方式
-import pdfMake from 'pdfmake/build/pdfmake';
-import vfs_fonts from 'pdfmake/build/vfs_fonts.js';
-
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
-// 設置虛擬檔案系統
-pdfMake.vfs = vfs_fonts.pdfMake.vfs;
+let pdfMake;
+let vfs;
 
-// 設置中文字體
-pdfMake.fonts = {
-  Roboto: {
-    normal: 'Roboto-Regular.ttf',
-    bold: 'Roboto-Medium.ttf',
-    italics: 'Roboto-Italic.ttf',
-    bolditalics: 'Roboto-MediumItalic.ttf'
-  },
-  // 添加思源黑體
-  NotoSansTC: {
-    normal: 'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-tc@4.5.12/files/noto-sans-tc-all-400-normal.woff',
-    bold: 'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-tc@4.5.12/files/noto-sans-tc-all-700-normal.woff',
+// 初始化 PDF 相關模組
+const initPDF = async () => {
+  if (!pdfMake) {
+    pdfMake = (await import('pdfmake/build/pdfmake')).default;
+    const pdfFonts = await import('pdfmake/build/vfs_fonts');
+    vfs = pdfFonts.pdfMake.vfs;
+    
+    // 設置虛擬檔案系統
+    pdfMake.vfs = vfs;
+
+    // 設置中文字體
+    pdfMake.fonts = {
+      Roboto: {
+        normal: 'Roboto-Regular.ttf',
+        bold: 'Roboto-Medium.ttf',
+        italics: 'Roboto-Italic.ttf',
+        bolditalics: 'Roboto-MediumItalic.ttf'
+      },
+      // 添加思源黑體
+      NotoSansTC: {
+        normal: 'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-tc@4.5.12/files/noto-sans-tc-all-400-normal.woff',
+        bold: 'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-tc@4.5.12/files/noto-sans-tc-all-700-normal.woff'
+      }
+    };
   }
+  return pdfMake;
 };
 
 // 建立文件定義
@@ -92,6 +102,9 @@ const formatCost = (cost) => {
 };
 
 export const generateActivityPDF = async (activity, tripItems, accommodations, budgets, travelInfo) => {
+  // 確保 PDF 模組已初始化
+  const pdfMake = await initPDF();
+  
   // 格式化日期
   const formatDate = (dateString) => {
     try {
