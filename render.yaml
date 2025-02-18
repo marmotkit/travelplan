@@ -20,14 +20,6 @@ services:
         value: production
     healthCheckPath: /health
     autoDeploy: true
-    routes:
-      - type: web
-        plan: free
-        domain: travelplan.onrender.com
-        paths:
-          - "/"
-          - "/health"
-          - "/api/*"
 
   # 前端服務
   - type: static
