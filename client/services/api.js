@@ -10,8 +10,7 @@ if (!API_URL) {
 export const api = axios.create({
   baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
+    'Content-Type': 'application/json'
   },
   withCredentials: true
 });
@@ -25,9 +24,6 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
-    // 添加 CORS headers
-    config.headers['Access-Control-Allow-Origin'] = 'https://travel-planner-web.onrender.com';
     
     console.log('Request config:', config);
     return config;
