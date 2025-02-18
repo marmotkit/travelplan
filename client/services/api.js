@@ -11,10 +11,10 @@ if (!BASE_URL) {
 export const api = axios.create({
   baseURL: BASE_URL,
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
   },
-  withCredentials: true,
-  timeout: 10000  // 10 秒超時
+  withCredentials: false  // 改為 false，因為我們使用 token 認證
 });
 
 // 請求攔截器
@@ -22,6 +22,7 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     console.log('Request interceptor - token:', token ? '存在' : '不存在');
+    console.log('Request config:', config);
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -34,13 +35,6 @@ api.interceptors.request.use(
         _t: Date.now()
       };
     }
-    
-    console.log('Request config:', {
-      url: config.url,
-      method: config.method,
-      headers: config.headers,
-      data: config.data
-    });
     
     return config;
   },
@@ -61,11 +55,18 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error('Response error:', {
-      message: error.message,
-      response: error.response,
-      config: error.config
-    });
+    console.error('Response error:', error);
+    if (error.response) {
+      // 服務器回應了請求，但狀態碼不在 2xx 範圍內
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+    } else if (error.request) {
+      // 請求已發出，但沒有收到回應
+      console.error('No response received:', error.request);
+    } else {
+      // 在設置請求時發生了錯誤
+      console.error('Error setting up request:', error.message);
+    }
     
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
