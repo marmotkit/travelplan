@@ -28,9 +28,9 @@ services:
       echo "Project root:"
       ls -la
       echo "Models directory:"
-      ls -la models || mkdir -p models
+      mkdir -p models
       echo "Creating accommodation model..."
-      [ -f models/accommodation.js ] || cat > models/accommodation.js << 'EOL'
+      cat > models/accommodation.js << 'EOL'
       const mongoose = require('mongoose');
       const accommodationSchema = new mongoose.Schema({
         activityId: { type: mongoose.Schema.Types.ObjectId, ref: 'Activity', required: true },
@@ -43,6 +43,8 @@ services:
       }, { timestamps: true });
       module.exports = mongoose.model('Accommodation', accommodationSchema);
       EOL
+      echo "Model file contents:"
+      cat models/accommodation.js
     startCommand: cd server && node index.js
     envVars:
       - key: PORT
