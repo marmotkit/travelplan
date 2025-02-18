@@ -1,5 +1,6 @@
 {
-  "name": "travel-plan",
+  "name": "travel-plan-client",
+  "private": true,
   "version": "1.0.0",
   "scripts": {
     "dev": "vite --host",
