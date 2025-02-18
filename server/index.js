@@ -77,6 +77,8 @@ process.on('uncaughtException', (error) => {
 
 // 添加更多日誌
 console.log('啟動服務器...');
+console.log('Current working directory:', process.cwd());
+console.log('Node modules directory:', require.resolve('jsonwebtoken'));
 
 // 連接到 MongoDB
 mongoose.connect(mongoUri)
@@ -87,10 +89,14 @@ mongoose.connect(mongoUri)
     app.listen(port, '0.0.0.0', () => {
       console.log(`Server is running on port ${port}`);
       console.log(`Environment: ${nodeEnv}`);
+      
+      // 列出所有註冊的路由
       console.log('可用的路由:');
-      console.log('- GET /');
-      console.log('- GET /health');
-      console.log('- GET /api/test');
+      app._router.stack.forEach((r) => {
+        if (r.route && r.route.path) {
+          console.log(`- ${r.route.stack[0].method.toUpperCase()} ${r.route.path}`);
+        }
+      });
     });
   })
   .catch((error) => {
@@ -119,7 +125,3 @@ process.on('SIGTERM', () => {
       process.exit(1);
     });
 });
-
-// 添加在文件開頭
-console.log('Current working directory:', process.cwd());
-console.log('Node modules directory:', require.resolve('jsonwebtoken')); 
