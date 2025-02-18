@@ -4,29 +4,19 @@ services:
     name: travel-planner-api
     env: node
     rootDir: server
+    runtime: node@16.x
     buildCommand: |
       echo "Current directory: $(pwd)"
-      echo "Directory contents:"
-      ls -la
-      echo "Removing existing node_modules..."
-      rm -rf node_modules
-      echo "Removing package-lock.json..."
-      rm -f package-lock.json
+      echo "Node version: $(node --version)"
       echo "Installing dependencies..."
-      npm cache clean --force
       npm install
       echo "Node_modules contents:"
       ls -la node_modules
       echo "Checking jsonwebtoken:"
       ls -la node_modules/jsonwebtoken || echo "jsonwebtoken not found"
-      echo "Package.json contents:"
-      cat package.json
     startCommand: |
       echo "Starting from directory: $(pwd)"
-      echo "Directory contents:"
-      ls -la
       echo "Node version: $(node --version)"
-      echo "NPM version: $(npm --version)"
       node index.js
     envVars:
       - key: PORT
@@ -37,15 +27,19 @@ services:
         value: your_very_secure_jwt_secret
       - key: NODE_ENV
         value: production
-      - key: NODE_VERSION
-        value: 16.x
 
   # 前端服務
   - type: static
     name: travel-planner-web
     env: static
     rootDir: client
-    buildCommand: npm install && npm run build
+    runtime: node@16.x
+    buildCommand: |
+      echo "Node version: $(node --version)"
+      echo "Installing dependencies..."
+      npm install
+      echo "Building..."
+      npm run build
     staticPublishPath: dist
     routes:
       - type: rewrite
