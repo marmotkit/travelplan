@@ -19,7 +19,7 @@ export const authApi = {
   login: async (username, password) => {
     try {
       console.log('Attempting login for:', username);
-      const response = await api.post('/users/login', {
+      const response = await api.post('/api/users/login', {
         username,
         password
       });

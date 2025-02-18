@@ -1,12 +1,12 @@
 // 修改導入方式
 import pdfMake from 'pdfmake/build/pdfmake';
-import * as pdfFonts from 'pdfmake/build/vfs_fonts';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
 
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
 // 設置虛擬檔案系統
-pdfMake.vfs = pdfFonts.pdfMake ? pdfFonts.pdfMake.vfs : pdfFonts.vfs;
+pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
 // 設置中文字體
 pdfMake.fonts = {
