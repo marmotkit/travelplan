@@ -1,12 +1,12 @@
 // 修改導入方式
-import pdfMake from 'pdfmake/build/pdfmake';
-import pdfFonts from 'pdfmake/build/vfs_fonts';
+const pdfMake = require('pdfmake/build/pdfmake');
+const vfs = require('pdfmake/build/vfs_fonts');
 
-import { format } from 'date-fns';
-import { zhTW } from 'date-fns/locale';
+const { format } = require('date-fns');
+const { zhTW } = require('date-fns/locale');
 
 // 設置虛擬檔案系統
-pdfMake.vfs = pdfFonts.pdfMake.vfs;
+pdfMake.vfs = vfs.pdfMake.vfs;
 
 // 設置中文字體
 pdfMake.fonts = {
@@ -91,7 +91,7 @@ const formatCost = (cost) => {
   return cleanedCost ? `• ${cleanedCost}` : '';
 };
 
-export const generateActivityPDF = async (activity, tripItems, accommodations, budgets, travelInfo) => {
+module.exports.generateActivityPDF = async (activity, tripItems, accommodations, budgets, travelInfo) => {
   // 格式化日期
   const formatDate = (dateString) => {
     try {
