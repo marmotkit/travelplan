@@ -15,7 +15,11 @@ const app = express();
 
 // CORS 配置
 app.use(cors({
-  origin: ['https://travel-planner-web.onrender.com', 'http://localhost:5173'],
+  origin: [
+    'https://travel-planner-web.onrender.com',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
