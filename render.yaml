@@ -4,7 +4,11 @@ services:
     name: travel-planner-api
     env: node
     rootDir: server
-    buildCommand: npm install
+    buildCommand: |
+      pwd
+      ls -la
+      npm install --production
+      ls -la node_modules/jsonwebtoken
     startCommand: node index.js
     envVars:
       - key: PORT
