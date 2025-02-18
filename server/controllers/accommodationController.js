@@ -1,4 +1,4 @@
-const Accommodation = require('../models/Accommodation');
+const Accommodation = require('../models/accommodation');
 
 exports.createMany = async (req, res) => {
   try {
@@ -106,12 +106,10 @@ exports.updateStatus = async (req, res) => {
 
 exports.getAllAccommodations = async (req, res) => {
   try {
-    const accommodations = await Accommodation.find()
-      .populate('activityId', 'title');
+    const accommodations = await Accommodation.find();
     res.json(accommodations);
   } catch (error) {
-    console.error('獲取住宿列表失敗:', error);
-    res.status(500).json({ message: '獲取住宿列表失敗' });
+    res.status(500).json({ message: '獲取住宿列表失敗', error: error.message });
   }
 };
 
