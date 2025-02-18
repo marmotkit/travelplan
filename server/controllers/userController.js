@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 // 直接使用環境變數，不再依賴 config.js
 const jwtSecret = process.env.JWT_SECRET || 'your_very_secure_jwt_secret';
@@ -54,6 +55,15 @@ exports.login = async (req, res) => {
       username,
       inputPasswordLength: password.length,
       storedPasswordLength: user.password.length,
+      timestamp: new Date().toISOString()
+    });
+
+    // 生成測試密碼的哈希值進行比較
+    const testHash = await bcrypt.hash(password, 10);
+    console.log('Password hashes:', {
+      inputPassword: password,
+      testHash,
+      storedHash: user.password,
       timestamp: new Date().toISOString()
     });
 
