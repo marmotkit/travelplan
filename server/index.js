@@ -1,7 +1,16 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const config = require('./config/config');
+
+// 直接使用環境變數
+const config = {
+  port: process.env.PORT || 5001,
+  mongoUri: process.env.MONGO_URI || 'mongodb://localhost:27017/travel_planner',
+  jwtSecret: process.env.JWT_SECRET || 'your_jwt_secret_here',
+  jwtExpiresIn: '24h',
+  nodeEnv: process.env.NODE_ENV || 'development'
+};
+
 const planRoutes = require('./routes/planRoutes');
 const tripItemRoutes = require('./routes/tripItemRoutes');
 const accommodationRoutes = require('./routes/accommodationRoutes');

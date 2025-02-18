@@ -64,5 +64,15 @@
 - 前端網站：https://travel-planner-web.onrender.com
 - 資料庫：MongoDB Atlas
 
+### 環境變數設定
+後端服務需要以下環境變數：
+- PORT: 5001
+- MONGO_URI: MongoDB 連接字串
+- JWT_SECRET: JWT 密鑰
+- NODE_ENV: production
+
+前端服務需要以下環境變數：
+- VITE_API_URL: 後端 API 的完整 URL
+
 ### 測試帳號
 - 管理員：admin / admin123
