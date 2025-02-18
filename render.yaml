@@ -24,12 +24,25 @@ services:
       ls -la node_modules/express
       ls -la node_modules/mongoose
       
-      echo "=== Setting up config ==="
-      echo "module.exports = {
-        jwtSecret: process.env.JWT_SECRET,
-        mongoUri: process.env.MONGO_URI,
-        port: process.env.PORT || 5001
-      };" > config/config.js
+      echo "=== Verifying Project Structure ==="
+      echo "Project root:"
+      ls -la
+      echo "Models directory:"
+      ls -la models || mkdir -p models
+      echo "Creating accommodation model..."
+      [ -f models/accommodation.js ] || cat > models/accommodation.js << 'EOL'
+      const mongoose = require('mongoose');
+      const accommodationSchema = new mongoose.Schema({
+        activityId: { type: mongoose.Schema.Types.ObjectId, ref: 'Activity', required: true },
+        hotel: { type: String, required: true },
+        address: { type: String, required: true },
+        dateRange: { type: String, required: true },
+        status: { type: String, enum: ['pending', 'confirmed', 'cancelled'], default: 'pending' },
+        price: { type: Number, default: 0 },
+        notes: String
+      }, { timestamps: true });
+      module.exports = mongoose.model('Accommodation', accommodationSchema);
+      EOL
     startCommand: cd server && node index.js
     envVars:
       - key: PORT
