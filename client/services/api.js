@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || 'https://travelplan.onrender.com/api';
 
 if (!API_URL) {
   console.error('API URL not configured! Please check .env file');
@@ -78,18 +78,25 @@ api.interceptors.response.use(
 
 // 添加測試 API
 export const testApi = {
-  test: () => {
-    console.log('Testing API URL:', API_URL); // 添加日誌
-    return api.get('/api/test').catch(error => {
+  test: async () => {
+    try {
+      console.log('API URL:', API_URL);
+      console.log('Making test request to:', `${API_URL}/test`);
+      
+      const response = await api.get('/test');
+      console.log('Test response:', response.data);
+      return response;
+    } catch (error) {
       console.error('Test API Error:', {
         message: error.message,
         status: error.response?.status,
         data: error.response?.data,
         url: error.config?.url,
-        baseURL: API_URL
+        baseURL: API_URL,
+        fullUrl: `${API_URL}${error.config?.url}`
       });
       throw error;
-    });
+    }
   }
 };
 
