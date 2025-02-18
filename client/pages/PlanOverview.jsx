@@ -121,9 +121,10 @@ const PlanOverview = () => {
     cost: '',
   });
   const [saving, setSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    fetchActivities();
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -132,28 +133,60 @@ const PlanOverview = () => {
     }
   }, [selectedActivity]);
 
-  const fetchActivities = async () => {
+  const loadData = async () => {
     try {
-      const data = await planApi.getAll();
-      setActivities(data);
+      setIsLoading(true);
+      console.log('開始載入數據...');
+      const activitiesRes = await planApi.getAll();
+      console.log('活動數據:', activitiesRes.data);
+
+      // 確保 activities 是陣列
+      if (!Array.isArray(activitiesRes.data)) {
+        console.error('活動數據格式錯誤:', activitiesRes.data);
+        setActivities([]);
+        return;
+      }
+
+      // 只取進行中和計劃中的活動
+      const validActivities = activitiesRes.data.filter(activity => 
+        activity.status === 'planning' || activity.status === 'ongoing'
+      );
+      console.log('有效活動:', validActivities);
+      setActivities(validActivities);
     } catch (error) {
-      console.error('Error fetching activities:', error);
+      console.error('載入數據失敗:', error);
+      console.error('錯誤詳情:', error.response?.data || error.message);
+      setError('載入數據失敗');
+      setActivities([]); // 確保設置空陣列
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const loadTripItems = async () => {
     try {
-      const data = await tripItemApi.getByActivity(selectedActivity);
+      const response = await tripItemApi.getByActivity(selectedActivity);
+      console.log('載入行程項目數據:', response.data);
+
+      // 確保數據是陣列
+      const tripData = Array.isArray(response.data) ? response.data : [];
+      
       // 將資料轉換為顯示格式
-      const groupedItems = groupTripItems(data);
+      const groupedItems = groupTripItems(tripData);
       setItems(groupedItems);
     } catch (error) {
-      console.error('Error loading trip items:', error);
+      console.error('載入行程項目失敗:', error);
       setError('載入行程項目失敗');
+      setItems([]); // 確保設置空陣列
     }
   };
 
   const groupTripItems = (data) => {
+    if (!Array.isArray(data)) {
+      console.warn('groupTripItems 收到非陣列數據:', data);
+      return [];
+    }
+
     const grouped = {};
     data.forEach(item => {
       if (!grouped[item.date]) {
@@ -168,6 +201,8 @@ const PlanOverview = () => {
         cost: item.cost
       });
     });
+
+    // 轉換為陣列並加入 rowSpan
     return Object.values(grouped).map(group => ({
       ...group,
       rowSpan: group.activities.length
@@ -290,7 +325,7 @@ const PlanOverview = () => {
             displayEmpty
           >
             <MenuItem value="">選擇活動</MenuItem>
-            {activities.map((activity) => (
+            {Array.isArray(activities) && activities.map((activity) => (
               <MenuItem key={activity._id} value={activity._id}>
                 {activity.title}
               </MenuItem>

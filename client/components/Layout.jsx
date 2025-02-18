@@ -20,7 +20,8 @@ import {
   Hotel as HotelIcon,
   AttachMoney as AttachMoneyIcon,
   People as PeopleIcon,
-  Logout as LogoutIcon
+  Logout as LogoutIcon,
+  ViewList as ViewListIcon
 } from '@mui/icons-material';
 import { authApi } from '../services/authApi';
 import Footer from './Footer';
@@ -43,6 +44,7 @@ export default function Layout() {
   const userMenuItems = [
     { text: '儀表板', icon: <DashboardIcon />, path: '/dashboard' },
     { text: '活動管理', icon: <ListAltIcon />, path: '/plans' },
+    { text: '行程總覽', icon: <ViewListIcon />, path: '/plans/overview' },
     { text: '住宿管理', icon: <HotelIcon />, path: '/accommodations' },
     { text: '預算管理', icon: <AttachMoneyIcon />, path: '/budgets' }
   ];

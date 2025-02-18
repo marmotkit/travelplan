@@ -20,6 +20,8 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Download as DownloadIcon,
+  CalendarMonth as CalendarIcon,
+  ViewList as ViewListIcon
 } from '@mui/icons-material';
 import { 
   planApi, 
@@ -160,13 +162,29 @@ const PlanList = () => {
                   <TableCell align="right">
                     <IconButton
                       size="small"
+                      onClick={() => navigate(`/plans/${plan._id}/itinerary`)}
+                      title="行程管理"
+                    >
+                      <CalendarIcon />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => navigate(`/plans/overview`)}
+                      title="行程總覽"
+                    >
+                      <ViewListIcon />
+                    </IconButton>
+                    <IconButton
+                      size="small"
                       onClick={() => handleDownloadPDF(plan._id)}
+                      title="下載 PDF"
                     >
                       <DownloadIcon />
                     </IconButton>
                     <IconButton
                       size="small"
                       onClick={() => navigate(`/plans/${plan._id}/edit`)}
+                      title="編輯"
                     >
                       <EditIcon />
                     </IconButton>
@@ -174,6 +192,7 @@ const PlanList = () => {
                       size="small"
                       color="error"
                       onClick={() => handleDelete(plan._id)}
+                      title="刪除"
                     >
                       <DeleteIcon />
                     </IconButton>

@@ -58,15 +58,12 @@ exports.getByActivity = async (req, res) => {
     
     const items = await TripItem.find({ activityId })
       .sort({ date: 1 })
-      .lean();  // 使用 lean() 提高效能
+      .lean();
     
     console.log('Found trip items:', items);
-    res.json(items);
+    res.json(items || []);
   } catch (error) {
     console.error('Error in getByActivity:', error);
-    res.status(500).json({ 
-      message: error.message,
-      details: error.stack 
-    });
+    res.status(500).json({ message: error.message });
   }
 }; 
