@@ -81,4 +81,7 @@ pids
 .yarn-integrity
 
 # New additions
-dist/ 
+dist/
+
+# Docker
+.docker 

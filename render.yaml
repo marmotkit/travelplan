@@ -2,34 +2,8 @@ services:
   # 後端服務
   - type: web
     name: travel-planner-api
-    env: node
-    rootDir: server
-    buildCommand: |
-      echo "Current directory:"
-      pwd
-      echo "\nDirectory contents:"
-      ls -la
-      echo "\nMoving to correct directory..."
-      cd /opt/render/project/src/server
-      echo "\nNow in:"
-      pwd
-      echo "\nInstalling dependencies..."
-      npm install
-      echo "\nNode_modules contents:"
-      ls -la node_modules
-      echo "\nChecking jsonwebtoken:"
-      ls -la node_modules/jsonwebtoken || echo "jsonwebtoken not found"
-    startCommand: |
-      echo "Starting server from:"
-      pwd
-      cd /opt/render/project/src/server
-      echo "\nNow in:"
-      pwd
-      echo "\nNode version:"
-      node --version
-      echo "\nDirectory contents:"
-      ls -la
-      node index.js
+    env: docker
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: PORT
         value: 5001
@@ -39,10 +13,6 @@ services:
         value: your_very_secure_jwt_secret
       - key: NODE_ENV
         value: production
-      - key: DEBUG
-        value: "true"
-      - key: NODE_VERSION
-        value: "16.x"
 
   # 前端服務
   - type: static
