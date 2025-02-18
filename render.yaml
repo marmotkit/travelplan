@@ -3,12 +3,9 @@ services:
   - type: web
     name: travel-planner-api
     env: node
-    buildCommand: |
-      cd server
-      npm install
-    startCommand: |
-      cd server
-      node index.js
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node index.js
     envVars:
       - key: PORT
         value: 5001
@@ -23,11 +20,9 @@ services:
   - type: static
     name: travel-planner-web
     env: static
-    buildCommand: |
-      cd client
-      npm install
-      npm run build
-    staticPublishPath: client/dist
+    rootDir: client
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
     routes:
       - type: rewrite
         source: /*
