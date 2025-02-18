@@ -35,19 +35,12 @@ export default defineConfig({
     }
   },
   define: {
-    'process.env': {},
-    'React': 'react'
+    'process.env': {}
   },
   optimizeDeps: {
-    include: [
-      'react',
-      'react-dom',
-      'pdfmake/build/pdfmake',
-      'pdfmake/build/vfs_fonts'
-    ]
+    include: ['react', 'react-dom']
   },
-  publicDir: 'public',
   esbuild: {
-    jsxInject: `import React from 'react'`
+    logOverride: { 'this-is-undefined-in-esm': 'silent' }
   }
 });

@@ -80,12 +80,13 @@ api.interceptors.response.use(
 export const testApi = {
   test: () => {
     console.log('Testing API URL:', API_URL); // 添加日誌
-    return api.get('test').catch(error => {
+    return api.get('/api/test').catch(error => {
       console.error('Test API Error:', {
         message: error.message,
         status: error.response?.status,
         data: error.response?.data,
-        url: error.config?.url
+        url: error.config?.url,
+        baseURL: API_URL
       });
       throw error;
     });
