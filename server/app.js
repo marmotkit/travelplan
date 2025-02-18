@@ -26,22 +26,23 @@ app.use(express.json());
 
 // 健康檢查路由
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// 測試路由 - 確保在所有其他路由之前
+app.get('/test', (req, res) => {
+  console.log('Test route accessed');
+  res.json({ 
+    message: 'API is working',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV
+  });
 });
 
 // API 路由前綴
 app.use('/api', (req, res, next) => {
   console.log(`${req.method} ${req.path}`);
   next();
-});
-
-// 測試路由
-app.get('/api/test', (req, res) => {
-  console.log('Test route accessed');
-  res.json({ 
-    message: 'API is working',
-    timestamp: new Date().toISOString()
-  });
 });
 
 // 公開路由

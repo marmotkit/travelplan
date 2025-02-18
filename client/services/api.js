@@ -78,7 +78,14 @@ api.interceptors.response.use(
 
 // 添加測試 API
 export const testApi = {
-  test: () => api.get('/test')
+  test: () => api.get('/test').catch(error => {
+    console.error('Test API Error:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data
+    });
+    throw error;
+  })
 };
 
 export const planApi = {
