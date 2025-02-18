@@ -9,10 +9,12 @@ services:
       pwd
       echo "\nDirectory contents:"
       ls -la
-      echo "\nCreating package-lock.json"
-      npm install --package-lock-only
+      echo "\nMoving to correct directory..."
+      cd /opt/render/project/src/server
+      echo "\nNow in:"
+      pwd
       echo "\nInstalling dependencies..."
-      npm ci --production
+      npm install
       echo "\nNode_modules contents:"
       ls -la node_modules
       echo "\nChecking jsonwebtoken:"
@@ -20,10 +22,13 @@ services:
     startCommand: |
       echo "Starting server from:"
       pwd
-      echo "\nDirectory contents:"
-      ls -la
+      cd /opt/render/project/src/server
+      echo "\nNow in:"
+      pwd
       echo "\nNode version:"
       node --version
+      echo "\nDirectory contents:"
+      ls -la
       node index.js
     envVars:
       - key: PORT
