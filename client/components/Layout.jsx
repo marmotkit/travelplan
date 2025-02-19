@@ -29,7 +29,7 @@ import Footer from './Footer';
 const drawerWidth = 240;
 
 export default function Layout() {
-  const outlet = useOutlet();  // 直接使用 useOutlet
+  const outlet = useOutlet();  
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
   const isAdmin = authApi.isAdmin();
@@ -67,13 +67,13 @@ export default function Layout() {
     const [major, minor] = version.split('.');
     let newVersion;
     
-    if (e.button === 0) { // 左鍵點擊
+    if (e.button === 0) { 
       if (minor === '9') {
         newVersion = `${parseInt(major) + 1}.0`;
       } else {
         newVersion = `${major}.${parseInt(minor) + 1}`;
       }
-    } else if (e.button === 2) { // 右鍵點擊
+    } else if (e.button === 2) { 
       if (minor === '0') {
         if (major !== '1') {
           newVersion = `${parseInt(major) - 1}.9`;
@@ -188,7 +188,7 @@ export default function Layout() {
         }}
       >
         <Toolbar />
-        {outlet}  {/* 使用 outlet 而不是 children */}
+        {outlet}  
         <Footer />
       </Box>
     </Box>

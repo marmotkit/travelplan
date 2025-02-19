@@ -1,87 +1,76 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
+  Container,
   Paper,
-  Typography,
-  Button,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Button,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
-  Select,
-  MenuItem,
   IconButton,
+  Typography,
+  Box,
   Alert,
-  Chip
+  CircularProgress
 } from '@mui/material';
-import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Block as BlockIcon
-} from '@mui/icons-material';
-import { userApi } from '../services/authApi';
+import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { authApi } from '../services/authApi';
+import { useAuth } from '../contexts/AuthContext';
+import { userAPI } from '../services/api';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [formData, setFormData] = useState({
     username: '',
-    password: '',
-    name: '',
-    role: 'user'
+    email: '',
+    role: ''
   });
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
-  const isAdmin = authApi.isAdmin();
 
-  const loadUsers = async () => {
-    try {
-      console.log('正在載入用戶列表...');
-      const data = await userApi.getAll();
-      console.log('用戶列表載入成功:', data);
-      setUsers(data);
-    } catch (error) {
-      console.error('載入用戶列表失敗:', error);
-      setError('載入用戶列表失敗');
-    }
-  };
+  const { user: currentUser } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isAdmin) {
-      navigate('/dashboard');
-      return;
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await userAPI.getUsers();
+      setUsers(response);
+    } catch (err) {
+      console.error('獲取用戶列表失敗:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-    
-    console.log('UserManagement 組件已掛載');
-    loadUsers();
-  }, [isAdmin, navigate]);
+  };
 
   const handleOpenDialog = (user = null) => {
     if (user) {
       setSelectedUser(user);
       setFormData({
         username: user.username,
-        password: '',
-        name: user.name,
+        email: user.email,
         role: user.role
       });
     } else {
       setSelectedUser(null);
       setFormData({
         username: '',
-        password: '',
-        name: '',
-        role: 'user'
+        email: '',
+        role: ''
       });
     }
     setOpenDialog(true);
@@ -92,44 +81,73 @@ const UserManagement = () => {
     setSelectedUser(null);
     setFormData({
       username: '',
-      password: '',
-      name: '',
-      role: 'user'
+      email: '',
+      role: ''
     });
   };
 
-  const handleSubmit = async () => {
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
       if (selectedUser) {
-        await userApi.update(selectedUser._id, formData);
+        await userAPI.updateUser(selectedUser._id, formData);
       } else {
-        await userApi.create(formData);
+        await userAPI.createUser(formData);
       }
-      await loadUsers();
+      fetchUsers();
       handleCloseDialog();
-    } catch (error) {
-      setError(error.response?.data?.message || '操作失敗');
+    } catch (err) {
+      console.error('保存用戶失敗:', err);
+      setError(err.message);
     }
   };
 
-  const handleDeactivate = async (id) => {
-    if (!window.confirm('確定要停用此用戶？')) return;
-    
+  const handleDelete = async (userId) => {
+    if (!window.confirm('確定要刪除這個用戶嗎？')) {
+      return;
+    }
     try {
-      await userApi.delete(id);
-      await loadUsers();
-    } catch (error) {
-      setError('停用用戶失敗');
+      await userAPI.deleteUser(userId);
+      fetchUsers();
+    } catch (err) {
+      console.error('刪除用戶失敗:', err);
+      setError(err.message);
     }
   };
+
+  if (!currentUser || currentUser.role !== 'admin') {
+    return (
+      <Container>
+        <Typography variant="h5" color="error">
+          訪問被拒絕：需要管理員權限
+        </Typography>
+      </Container>
+    );
+  }
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h5">用戶管理</Typography>
+    <Container>
+      <Box mb={4} display="flex" justifyContent="space-between" alignItems="center">
+        <Typography variant="h4">用戶管理</Typography>
         <Button
           variant="contained"
-          startIcon={<AddIcon />}
+          color="primary"
           onClick={() => handleOpenDialog()}
         >
           新增用戶
@@ -137,7 +155,7 @@ const UserManagement = () => {
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
+        <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
@@ -147,44 +165,29 @@ const UserManagement = () => {
           <TableHead>
             <TableRow>
               <TableCell>用戶名</TableCell>
-              <TableCell>姓名</TableCell>
+              <TableCell>郵箱</TableCell>
               <TableCell>角色</TableCell>
-              <TableCell>狀態</TableCell>
-              <TableCell align="right">操作</TableCell>
+              <TableCell>操作</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {users.map((user) => (
               <TableRow key={user._id}>
                 <TableCell>{user.username}</TableCell>
-                <TableCell>{user.name}</TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>{user.role}</TableCell>
                 <TableCell>
-                  <Chip
-                    label={user.role === 'admin' ? '管理員' : '一般用戶'}
-                    color={user.role === 'admin' ? 'primary' : 'default'}
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell>
-                  <Chip
-                    label={user.isActive ? '啟用' : '停用'}
-                    color={user.isActive ? 'success' : 'error'}
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell align="right">
                   <IconButton
-                    size="small"
+                    color="primary"
                     onClick={() => handleOpenDialog(user)}
                   >
                     <EditIcon />
                   </IconButton>
                   <IconButton
-                    size="small"
                     color="error"
-                    onClick={() => handleDeactivate(user._id)}
+                    onClick={() => handleDelete(user._id)}
                   >
-                    <BlockIcon />
+                    <DeleteIcon />
                   </IconButton>
                 </TableCell>
               </TableRow>
@@ -198,53 +201,46 @@ const UserManagement = () => {
           {selectedUser ? '編輯用戶' : '新增用戶'}
         </DialogTitle>
         <DialogContent>
-          <TextField
-            fullWidth
-            label="用戶名"
-            name="username"
-            value={formData.username}
-            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-            margin="normal"
-            disabled={!!selectedUser}
-          />
-          <TextField
-            fullWidth
-            label="密碼"
-            name="password"
-            type="password"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            margin="normal"
-            required={!selectedUser}
-            helperText={selectedUser ? '留空表示不修改密碼' : ''}
-          />
-          <TextField
-            fullWidth
-            label="姓名"
-            name="name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            margin="normal"
-          />
-          <Select
-            fullWidth
-            value={formData.role}
-            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-            sx={{ mt: 2 }}
-          >
-            <MenuItem value="user">一般用戶</MenuItem>
-            <MenuItem value="admin">管理員</MenuItem>
-          </Select>
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="用戶名"
+              name="username"
+              value={formData.username}
+              onChange={handleInputChange}
+              required
+            />
+            <TextField
+              fullWidth
+              margin="normal"
+              label="郵箱"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              required
+            />
+            <TextField
+              fullWidth
+              margin="normal"
+              label="角色"
+              name="role"
+              value={formData.role}
+              onChange={handleInputChange}
+              required
+            />
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>取消</Button>
-          <Button onClick={handleSubmit} variant="contained">
-            確定
+          <Button onClick={handleSubmit} variant="contained" color="primary">
+            保存
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </Container>
   );
 };
 
-export default UserManagement; 
+export default UserManagement;
