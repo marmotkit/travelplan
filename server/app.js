@@ -18,23 +18,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // CORS 設置
-const allowedOrigins = [
-  'http://localhost:5173',
-  'https://travel-planner-web.onrender.com',
-  'https://travelplan.onrender.com'
-];
-
 app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('不允許的來源'));
-    }
-  },
+  origin: ['http://localhost:5173', 'https://travel-planner-web.onrender.com'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Request-ID']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Request-ID'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
 
 // 調試中間件
@@ -45,6 +35,9 @@ app.use((req, res, next) => {
   });
   next();
 });
+
+// 確保 OPTIONS 請求能被正確處理
+app.options('*', cors());
 
 // API 路由
 app.use('/api/users', userRoutes);
