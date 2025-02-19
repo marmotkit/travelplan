@@ -9,12 +9,12 @@ function generateRequestId() {
   });
 }
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://travelplan-llmo.onrender.com';
-console.log('API Base URL:', BASE_URL);
+const baseURL = import.meta.env.VITE_API_URL || 'https://travelplan.onrender.com';
+console.log('API Base URL:', baseURL);
 
 // 創建 axios 實例
 const api = axios.create({
-  baseURL: BASE_URL,
+  baseURL,
   timeout: 10000,
   withCredentials: true,
   headers: {
@@ -79,59 +79,25 @@ api.interceptors.response.use(
   }
 );
 
-// 測試 API 連接
-export const test = async () => {
-  try {
-    console.log('Testing API connection...');
-    const response = await api.get('/health');
-    console.log('API health check successful:', {
-      status: response.status,
-      data: response.data,
-      timestamp: new Date().toISOString()
-    });
-    return response.data;
-  } catch (error) {
-    console.error('API health check failed:', {
-      error: {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      },
-      timestamp: new Date().toISOString()
-    });
-    throw error;
-  }
-};
+export default api;
 
-// 添加測試 API
-export const testApi = {
-  test: async () => {
+// API 服務
+export const userAPI = {
+  getCurrentUser: () => {
+    const userStr = localStorage.getItem('user');
+    return userStr ? JSON.parse(userStr) : null;
+  },
+
+  login: async (username, password) => {
+    console.log('嘗試登入:', { username });
     try {
-      console.log('Base URL:', BASE_URL);
-      console.log('Making test request to:', `${BASE_URL}/api/test`);
-      
-      const response = await api.get('/api/test');
-      console.log('Test response:', response.data);
-      return response;
-    } catch (error) {
-      console.error('Test API Error:', {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data,
-        url: error.config?.url,
-        baseURL: BASE_URL,
-        fullUrl: `${BASE_URL}${error.config?.url}`
+      const response = await api.post('/api/users/login', {
+        username,
+        password
       });
-      throw error;
-    }
-  }
-};
-
-// 用戶相關 API
-export const authApi = {
-  login: async (credentials) => {
-    try {
-      const response = await api.post('/api/users/login', credentials);
+      
+      console.log('登入響應:', response);
+      
       if (response.success && response.token) {
         localStorage.setItem('token', response.token);
         localStorage.setItem('user', JSON.stringify(response.user));
@@ -140,71 +106,60 @@ export const authApi = {
     } catch (error) {
       console.error('登入錯誤:', {
         status: error.response?.status,
-        message: error.response?.data?.message || error.message,
-        headers: error.response?.headers
+        message: error.response?.data?.message || error.message
       });
       throw error;
     }
   },
 
-  logout: async () => {
+  logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-  },
-
-  getCurrentUser: () => {
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
   }
 };
 
-export const planApi = {
-  getAll: () => api.get('/api/plans'),
-  getById: (id) => api.get(`/api/plans/${id}`),
-  create: (data) => api.post('/api/plans', data),
-  update: (id, data) => api.put(`/api/plans/${id}`, data),
-  delete: (id) => api.delete(`/api/plans/${id}`),
-  downloadPDF: (id) => api.get(`/api/plans/${id}/pdf`, { responseType: 'blob' }),
+// 旅行計劃相關 API
+export const planAPI = {
+  getPlans: () => api.get('/api/plans'),
+  getPlan: (id) => api.get(`/api/plans/${id}`),
+  createPlan: (data) => api.post('/api/plans', data),
+  updatePlan: (id, data) => api.put(`/api/plans/${id}`, data),
+  deletePlan: (id) => api.delete(`/api/plans/${id}`)
 };
 
-export const accommodationApi = {
-  getAll: () => api.get('/api/accommodations'),
-  getByActivity: (activityId) => api.get(`/api/accommodations/activity/${activityId}`),
-  create: (data) => api.post('/api/accommodations', data),
-  update: (id, data) => api.put(`/api/accommodations/${id}`, data),
-  delete: (id) => api.delete(`/api/accommodations/${id}`),
-  patch: (path, data) => api.patch(`/api/accommodations${path}`, data),
-  saveItems: (activityId, items) => api.post('/api/accommodations/batch', { activityId, items })
+// 行程項目相關 API
+export const tripItemAPI = {
+  getTripItems: (planId) => api.get(`/api/trip-items?planId=${planId}`),
+  createTripItem: (data) => api.post('/api/trip-items', data),
+  updateTripItem: (id, data) => api.put(`/api/trip-items/${id}`, data),
+  deleteTripItem: (id) => api.delete(`/api/trip-items/${id}`)
 };
 
-export const budgetApi = {
-  getAll: () => api.get('/api/budgets'),
-  getByActivity: (activityId) => api.get(`/api/budgets/activity/${activityId}`),
-  create: (data) => api.post('/api/budgets', data),
-  update: (id, data) => api.put(`/api/budgets/${id}`, data),
-  delete: (id) => api.delete(`/api/budgets/${id}`),
-  updateStatus: (id, status) => api.patch(`/api/budgets/${id}/status`, { status }),
-  saveItems: (activityId, items, summary) => api.post('/api/budgets/batch', { activityId, items, summary })
+// 住宿相關 API
+export const accommodationAPI = {
+  getAccommodations: (planId) => api.get(`/api/accommodations?planId=${planId}`),
+  createAccommodation: (data) => api.post('/api/accommodations', data),
+  updateAccommodation: (id, data) => api.put(`/api/accommodations/${id}`, data),
+  deleteAccommodation: (id) => api.delete(`/api/accommodations/${id}`)
 };
 
-export const dashboardApi = {
-  getSummary: () => api.get('/api/dashboard/summary')
+// 預算相關 API
+export const budgetAPI = {
+  getBudgets: (planId) => api.get(`/api/budgets?planId=${planId}`),
+  createBudget: (data) => api.post('/api/budgets', data),
+  updateBudget: (id, data) => api.put(`/api/budgets/${id}`, data),
+  deleteBudget: (id) => api.delete(`/api/budgets/${id}`)
 };
 
-export const tripItemApi = {
-  getAll: () => api.get('/api/trip-items'),
-  getByActivity: (activityId) => api.get(`/api/trip-items/activity/${activityId}`),
-  create: (data) => api.post('/api/trip-items', data),
-  update: (id, data) => api.put(`/api/trip-items/${id}`, data),
-  delete: (id) => api.delete(`/api/trip-items/${id}`)
+// 儀表板相關 API
+export const dashboardAPI = {
+  getSummary: () => api.get('/api/dashboard/summary'),
+  getStats: () => api.get('/api/dashboard/stats')
 };
 
-export const travelInfoApi = {
-  getAll: () => api.get('/api/travel-info'),
-  getByActivity: (activityId) => api.get(`/api/travel-info/activity/${activityId}`),
-  create: (data) => api.post('/api/travel-info', data),
-  update: (id, data) => api.put(`/api/travel-info/${id}`, data),
-  delete: (id) => api.delete(`/api/travel-info/${id}`)
+// 旅行資訊相關 API
+export const travelInfoAPI = {
+  getWeather: (location) => api.get(`/api/travel-info/weather?location=${location}`),
+  getCurrency: (from, to) => api.get(`/api/travel-info/currency?from=${from}&to=${to}`),
+  getAttractions: (location) => api.get(`/api/travel-info/attractions?location=${location}`)
 };
-
-export default api;

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { api } from './api';
+import api from './api';
 
 // 設置 axios 攔截器來處理認證
 api.interceptors.request.use(
