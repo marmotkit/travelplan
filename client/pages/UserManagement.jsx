@@ -23,7 +23,7 @@ import {
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { userAPI } from '../services/api';
+import userAPI from '../api/user';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);

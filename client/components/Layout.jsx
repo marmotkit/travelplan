@@ -23,7 +23,7 @@ import {
   Logout as LogoutIcon,
   ViewList as ViewListIcon
 } from '@mui/icons-material';
-import { authApi } from '../services/authApi';
+import { useAuth } from '../contexts/AuthContext';
 import Footer from './Footer';
 
 const drawerWidth = 240;
@@ -32,10 +32,8 @@ export default function Layout() {
   const outlet = useOutlet();  
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
-  const isAdmin = authApi.isAdmin();
-  const [version, setVersion] = useState(() => {
-    return localStorage.getItem('appVersion') || '1.0';
-  });
+  const { user, logout } = useAuth();
+  const isAdmin = user?.role === 'admin';
   
   const adminMenuItems = [
     { text: '用戶管理', icon: <PeopleIcon />, path: '/users' }
@@ -52,7 +50,7 @@ export default function Layout() {
   const menuItems = isAdmin ? adminMenuItems : userMenuItems;
 
   const handleLogout = () => {
-    authApi.logout();
+    logout();
     navigate('/login');
   };
 
@@ -60,35 +58,6 @@ export default function Layout() {
     console.log('點擊菜單項:', path);
     console.log('當前用戶角色:', isAdmin ? 'admin' : 'user');
     navigate(path);
-  };
-
-  const handleVersionClick = (e) => {
-    e.preventDefault();
-    const [major, minor] = version.split('.');
-    let newVersion;
-    
-    if (e.button === 0) { 
-      if (minor === '9') {
-        newVersion = `${parseInt(major) + 1}.0`;
-      } else {
-        newVersion = `${major}.${parseInt(minor) + 1}`;
-      }
-    } else if (e.button === 2) { 
-      if (minor === '0') {
-        if (major !== '1') {
-          newVersion = `${parseInt(major) - 1}.9`;
-        } else {
-          newVersion = '1.0';
-        }
-      } else {
-        newVersion = `${major}.${parseInt(minor) - 1}`;
-      }
-    }
-    
-    if (newVersion) {
-      setVersion(newVersion);
-      localStorage.setItem('appVersion', newVersion);
-    }
   };
 
   const drawer = (
@@ -138,18 +107,6 @@ export default function Layout() {
           }}>
             <Typography variant="h6" noWrap component="div">
               {isAdmin ? '旅遊行程管理系統 - 管理員' : '旅遊行程管理系統'}
-            </Typography>
-            <Typography 
-              variant="subtitle1"
-              onMouseDown={handleVersionClick}
-              onContextMenu={(e) => e.preventDefault()}
-              sx={{ 
-                cursor: 'pointer',
-                userSelect: 'none',
-                color: 'inherit'
-              }}
-            >
-              V{version}
             </Typography>
           </Box>
         </Toolbar>

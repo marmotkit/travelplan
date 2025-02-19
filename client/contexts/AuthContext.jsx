@@ -1,62 +1,70 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authApi } from '../services/api';
+import authAPI from '../../api/auth'; // Update the import path to the correct authAPI
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // 檢查本地存儲的認證狀態
-    const token = localStorage.getItem('token');
-    if (token) {
-      // 設置 API 請求的預設 header
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    }
-    setLoading(false);
+    const initAuth = () => {
+      try {
+        const currentUser = authAPI.getCurrentUser();
+        setUser(currentUser);
+      } catch (err) {
+        console.error('認證初始化錯誤:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initAuth();
   }, []);
 
-  const login = async (credentials) => {
+  const login = async (username, password) => {
     try {
-      const response = await authApi.login(credentials);
-      const { token, user } = response.data;
-      
-      // 保存 token 到本地存儲
-      localStorage.setItem('token', token);
-      // 設置 API 請求的預設 header
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
-      setUser(user);
-      return user;
-    } catch (error) {
-      throw error;
+      setError(null);
+      setLoading(true);
+      const response = await authAPI.login(username, password);
+      setUser(response.user);
+      return response;
+    } catch (err) {
+      setError(err.response?.data?.message || err.message);
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
-  const logout = async () => {
+  const logout = () => {
     try {
-      await authApi.logout();
-    } catch (error) {
-      console.error('登出時發生錯誤:', error);
-    } finally {
-      // 清除本地存儲和狀態
-      localStorage.removeItem('token');
-      delete api.defaults.headers.common['Authorization'];
+      authAPI.logout();
       setUser(null);
+    } catch (err) {
+      console.error('登出錯誤:', err);
+      setError(err.message);
     }
   };
 
   const value = {
     user,
     loading,
+    error,
     login,
-    logout
+    logout,
+    isAuthenticated: authAPI.isAuthenticated()
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
@@ -64,7 +72,7 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth 必須在 AuthProvider 內使用');
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
