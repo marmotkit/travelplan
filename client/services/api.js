@@ -1,5 +1,4 @@
 import axios from 'axios';
-import crypto from 'crypto';
 
 // 使用正確的域名
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://travelplan-llmo.onrender.com';
@@ -14,13 +13,22 @@ console.log('API Configuration:', {
   timestamp: new Date().toISOString()
 });
 
+// 生成請求 ID
+function generateRequestId() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 // 創建 axios 實例
 export const api = axios.create({
   baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'X-Request-ID': crypto.randomUUID()
+    'X-Request-ID': generateRequestId()
   },
   timeout: 10000,  // 10 秒超時
   withCredentials: true  // 啟用跨域請求攜帶憑證
@@ -132,6 +140,36 @@ export const testApi = {
   }
 };
 
+// 用戶相關 API
+export const authApi = {
+  login: async (credentials) => {
+    try {
+      const response = await api.post('/api/users/login', credentials);
+      if (response.success && response.token) {
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+      }
+      return response;
+    } catch (error) {
+      console.error('登入錯誤:', {
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message
+      });
+      throw error;
+    }
+  },
+
+  logout: async () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  },
+
+  getCurrentUser: () => {
+    const userStr = localStorage.getItem('user');
+    return userStr ? JSON.parse(userStr) : null;
+  }
+};
+
 export const planApi = {
   getAll: () => api.get('/api/plans'),
   getById: (id) => api.get(`/api/plans/${id}`),
@@ -179,9 +217,4 @@ export const travelInfoApi = {
   create: (data) => api.post('/api/travel-info', data),
   update: (id, data) => api.put(`/api/travel-info/${id}`, data),
   delete: (id) => api.delete(`/api/travel-info/${id}`)
-};
-
-export const authApi = {
-  login: (credentials) => api.post('/api/users/login', credentials),
-  logout: () => api.post('/api/users/logout'),
 };
