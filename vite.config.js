@@ -2,16 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  plugins: [
-    react({
-      include: "**/*.{jsx,tsx}",
-      babel: {
-        plugins: [
-          ["@babel/plugin-transform-react-jsx"]
-        ]
-      }
-    })
-  ],
+  plugins: [react()],
   root: './client',
   build: {
     outDir: 'dist',
@@ -44,6 +35,15 @@ export default defineConfig({
     logOverride: {
       'this-is-undefined-in-esm': 'silent',
       'use-client-directive': 'silent'
+    }
+  },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://travelplan.onrender.com',
+        changeOrigin: true,
+        secure: false,
+      }
     }
   }
 });
