@@ -21,7 +21,14 @@ const corsOptions = {
     /\.onrender\.com$/
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Debug-Request'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Accept',
+    'Origin',
+    'X-Request-ID',
+    'X-Debug-Request'
+  ],
   exposedHeaders: ['Content-Length', 'X-Request-ID'],
   credentials: false,
   maxAge: 86400 // 24 小時
