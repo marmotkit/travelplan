@@ -6,104 +6,148 @@ const bcrypt = require('bcryptjs');
 const jwtSecret = process.env.JWT_SECRET || 'your_very_secure_jwt_secret';
 const jwtExpiresIn = '24h';
 
+// 登入
 exports.login = async (req, res) => {
   try {
-    console.log('登入請求:', {
-      body: req.body,
-      headers: {
-        'content-type': req.headers['content-type'],
-        'x-request-id': req.headers['x-request-id']
-      }
-    });
-
     const { username, password } = req.body;
 
-    // 驗證請求體
     if (!username || !password) {
-      console.log('缺少必要參數:', { username: !!username, password: !!password });
       return res.status(400).json({
         success: false,
         message: '請提供用戶名和密碼'
       });
     }
 
-    // 查找用戶
     const user = await User.findOne({ username }).select('+password');
-    console.log('查找用戶結果:', { 
-      found: !!user,
-      username,
-      hasPassword: !!user?.password
-    });
-
-    if (!user) {
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({
         success: false,
-        message: '登入失敗，請檢查您的帳號密碼'
+        message: '用戶名或密碼錯誤'
       });
     }
 
-    // 檢查帳戶狀態
-    if (!user.isActive) {
-      return res.status(403).json({
-        success: false,
-        message: '帳戶已被停用'
-      });
-    }
-
-    // 驗證密碼
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    console.log('密碼驗證:', { 
-      isValid: isValidPassword,
-      username 
-    });
-
-    if (!isValidPassword) {
-      return res.status(401).json({
-        success: false,
-        message: '登入失敗，請檢查您的帳號密碼'
-      });
-    }
-
-    // 生成 JWT token
     const token = jwt.sign(
-      { 
-        id: user._id,
-        username: user.username,
-        role: user.role
-      },
+      { id: user._id, role: user.role },
       jwtSecret,
       { expiresIn: jwtExpiresIn }
     );
 
-    // 移除敏感資訊
-    const userResponse = {
-      id: user._id,
-      username: user.username,
-      role: user.role,
-      isActive: user.isActive
-    };
-
-    console.log('登入成功:', {
-      username,
-      role: user.role
-    });
-
-    // 返回成功響應
+    user.password = undefined;
     res.json({
       success: true,
-      message: '登入成功',
-      user: userResponse,
-      token
+      data: { user, token }
     });
   } catch (error) {
-    console.error('登入錯誤:', {
-      error: error.message,
-      stack: error.stack
-    });
-
+    console.error('登入錯誤:', error);
     res.status(500).json({
       success: false,
       message: '登入過程中發生錯誤'
+    });
+  }
+};
+
+// 登出
+exports.logout = async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      message: '成功登出'
+    });
+  } catch (error) {
+    console.error('登出錯誤:', error);
+    res.status(500).json({
+      success: false,
+      message: '登出過程中發生錯誤'
+    });
+  }
+};
+
+// 獲取用戶資料
+exports.getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: '找不到用戶'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    console.error('獲取用戶資料錯誤:', error);
+    res.status(500).json({
+      success: false,
+      message: '獲取用戶資料時發生錯誤'
+    });
+  }
+};
+
+// 更新用戶資料
+exports.updateProfile = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const updateData = {};
+
+    if (email) updateData.email = email;
+    if (password) updateData.password = password;
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: '找不到用戶'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    console.error('更新用戶資料錯誤:', error);
+    res.status(500).json({
+      success: false,
+      message: '更新用戶資料時發生錯誤'
+    });
+  }
+};
+
+// 獲取儀表板統計
+exports.getDashboardStats = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: '找不到用戶'
+      });
+    }
+
+    // TODO: 實現實際的統計數據
+    const stats = {
+      totalTrips: 0,
+      upcomingTrips: 0,
+      completedTrips: 0
+    };
+
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('獲取儀表板統計錯誤:', error);
+    res.status(500).json({
+      success: false,
+      message: '獲取儀表板統計時發生錯誤'
     });
   }
 };
