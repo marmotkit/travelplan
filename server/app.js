@@ -17,31 +17,32 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// CORS 配置
-const corsOptions = {
-  origin: ['http://localhost:5173', 'https://travel-planner-web.onrender.com'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Request-ID'],
-  exposedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-  maxAge: 86400
-};
-
-// 先處理 CORS
-app.use(cors(corsOptions));
-
-// 全局處理 OPTIONS 請求
-app.options('*', cors(corsOptions));
-
-// 調試中間件
+// 日誌中間件
 app.use((req, res, next) => {
-  console.log('請求信息:', {
+  console.log('收到請求:', {
     method: req.method,
-    path: req.path,
-    origin: req.headers.origin,
+    url: req.url,
     headers: req.headers,
+    body: req.body,
     timestamp: new Date().toISOString()
   });
+  next();
+});
+
+// 啟用 CORS
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://travel-planner-web.onrender.com');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Request-ID');
+  res.header('Access-Control-Expose-Headers', 'Content-Type, Authorization');
+  
+  // 處理 OPTIONS 請求
+  if (req.method === 'OPTIONS') {
+    console.log('處理 OPTIONS 請求');
+    return res.status(200).end();
+  }
+  
   next();
 });
 
@@ -67,19 +68,12 @@ app.get('/', (req, res) => {
 app.use((req, res) => {
   console.log('404:', {
     method: req.method,
-    path: req.path,
-    origin: req.headers.origin,
+    url: req.url,
     headers: req.headers
   });
-  
-  // 對於 OPTIONS 請求，返回 200
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  
   res.status(404).json({
     message: '找不到請求的資源',
-    path: req.path,
+    path: req.url,
     method: req.method
   });
 });
@@ -90,8 +84,7 @@ app.use((err, req, res, next) => {
     message: err.message,
     stack: err.stack,
     method: req.method,
-    path: req.path,
-    origin: req.headers.origin
+    url: req.url
   });
   res.status(err.status || 500).json({
     message: err.message || '伺服器內部錯誤'
