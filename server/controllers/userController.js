@@ -8,132 +8,95 @@ const jwtExpiresIn = '24h';
 
 exports.login = async (req, res) => {
   try {
-    console.log('Login endpoint hit:', {
-      path: req.path,
+    console.log('Login attempt:', {
       method: req.method,
-      headers: req.headers,
-      body: req.body,
+      path: req.path,
+      origin: req.headers.origin,
+      contentType: req.headers['content-type'],
       timestamp: new Date().toISOString()
     });
 
     const { username, password } = req.body;
-    
+
+    // 驗證請求體
     if (!username || !password) {
-      console.log('Missing credentials:', { 
-        username: !!username, 
-        password: !!password,
-        body: req.body,
-        rawBody: req.rawBody,
-        contentType: req.headers['content-type']
+      return res.status(400).json({
+        success: false,
+        message: '請提供用戶名和密碼'
       });
-      return res.status(400).json({ message: '請提供用戶名和密碼' });
     }
 
-    // 檢查用戶是否存在
-    const user = await User.findOne({ username });
-    console.log('Database query result:', {
-      userFound: !!user,
-      userId: user?._id,
-      userRole: user?.role,
-      hasPassword: !!user?.password,
-      passwordLength: user?.password?.length,
-      timestamp: new Date().toISOString()
-    });
+    // 查找用戶
+    const user = await User.findOne({ username }).select('+password');
     
     if (!user) {
-      console.log('User not found:', username);
-      return res.status(401).json({ message: '用戶名或密碼錯誤' });
+      return res.status(401).json({
+        success: false,
+        message: '用戶名或密碼錯誤'
+      });
     }
 
+    // 檢查帳戶狀態
     if (!user.isActive) {
-      console.log('Inactive user attempted login:', username);
-      return res.status(403).json({ message: '帳戶已被停用' });
-    }
-    
-    // 檢查密碼是否正確
-    console.log('Attempting password comparison:', {
-      username,
-      inputPasswordLength: password.length,
-      storedPasswordLength: user.password.length,
-      timestamp: new Date().toISOString()
-    });
-
-    // 生成測試密碼的哈希值進行比較
-    const testHash = await bcrypt.hash(password, 10);
-    console.log('Password hashes:', {
-      inputPassword: password,
-      testHash,
-      storedHash: user.password,
-      timestamp: new Date().toISOString()
-    });
-
-    let isMatch = false;
-    try {
-      isMatch = await user.comparePassword(password);
-      console.log('Password comparison completed:', {
-        isMatch,
-        username,
-        timestamp: new Date().toISOString()
+      return res.status(403).json({
+        success: false,
+        message: '帳戶已被停用'
       });
-    } catch (error) {
-      console.error('Password comparison error:', {
-        error: error.message,
-        stack: error.stack,
-        username,
-        timestamp: new Date().toISOString()
-      });
-      return res.status(500).json({ message: '密碼驗證錯誤' });
     }
 
-    if (!isMatch) {
-      console.log('Password mismatch:', {
-        username,
-        inputPasswordLength: password.length,
-        storedPasswordLength: user.password.length,
-        timestamp: new Date().toISOString()
+    // 驗證密碼
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      return res.status(401).json({
+        success: false,
+        message: '用戶名或密碼錯誤'
       });
-      return res.status(401).json({ message: '用戶名或密碼錯誤' });
     }
 
     // 生成 JWT token
-    console.log('Generating JWT token:', {
-      userId: user._id,
-      role: user.role,
-      timestamp: new Date().toISOString()
-    });
-
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { 
+        id: user._id,
+        username: user.username,
+        role: user.role
+      },
       jwtSecret,
       { expiresIn: jwtExpiresIn }
     );
 
-    console.log('Login successful:', {
-      username,
-      userId: user._id,
+    // 移除敏感資訊
+    const userResponse = {
+      id: user._id,
+      username: user.username,
       role: user.role,
-      tokenLength: token.length,
+      isActive: user.isActive
+    };
+
+    console.log('Login successful:', {
+      userId: user._id,
+      username: user.username,
+      role: user.role,
       timestamp: new Date().toISOString()
     });
 
+    // 返回成功響應
     res.json({
-      token,
-      user: {
-        id: user._id,
-        username: user.username,
-        name: user.name,
-        role: user.role
-      }
+      success: true,
+      message: '登入成功',
+      user: userResponse,
+      token
     });
   } catch (error) {
     console.error('Login error:', {
       error: error.message,
       stack: error.stack,
-      body: req.body,
-      headers: req.headers,
       timestamp: new Date().toISOString()
     });
-    res.status(500).json({ message: '登入過程中發生錯誤' });
+
+    res.status(500).json({
+      success: false,
+      message: '登入過程中發生錯誤'
+    });
   }
 };
 
