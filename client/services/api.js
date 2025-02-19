@@ -18,7 +18,8 @@ export const api = axios.create({
   baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json'
+    'Accept': 'application/json',
+    'X-Request-ID': Math.random().toString(36).substring(7)
   },
   timeout: 10000,  // 10 秒超時
   withCredentials: true  // 啟用跨域請求攜帶憑證
@@ -27,32 +28,16 @@ export const api = axios.create({
 // 請求攔截器
 api.interceptors.request.use(
   (config) => {
-    const requestId = Math.random().toString(36).substring(7);
-    
-    console.log('API Request:', {
-      id: requestId,
-      url: `${config.baseURL}${config.url}`,
-      method: config.method,
-      headers: config.headers,
-      data: config.data,
-      hasToken: !!config.headers.Authorization,
-      timestamp: new Date().toISOString()
-    });
-
-    // 添加請求 ID 到 headers
-    config.headers['X-Request-ID'] = requestId;
-    
+    // 添加時間戳防止快取
+    if (config.method === 'get') {
+      config.params = {
+        ...config.params,
+        _t: Date.now()
+      };
+    }
     return config;
   },
   (error) => {
-    console.error('Request error:', {
-      error: {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      },
-      timestamp: new Date().toISOString()
-    });
     return Promise.reject(error);
   }
 );
@@ -60,33 +45,13 @@ api.interceptors.request.use(
 // 響應攔截器
 api.interceptors.response.use(
   (response) => {
-    console.log('API Response:', {
-      id: response.config.headers['X-Request-ID'],
-      url: `${response.config.baseURL}${response.config.url}`,
-      method: response.config.method,
-      status: response.status,
-      statusText: response.statusText,
-      headers: response.headers,
-      data: response.data,
-      timestamp: new Date().toISOString()
-    });
-    return response;
+    return response.data;
   },
   (error) => {
-    console.error('Response error:', {
-      id: error.config?.headers?.['X-Request-ID'],
-      url: error.config?.url,
-      method: error.config?.method,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      headers: error.response?.headers,
-      data: error.response?.data,
-      error: {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      },
-      timestamp: new Date().toISOString()
+    console.error('API Error:', {
+      config: error.config,
+      response: error.response,
+      message: error.message
     });
     return Promise.reject(error);
   }

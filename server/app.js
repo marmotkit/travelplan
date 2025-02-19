@@ -13,42 +13,37 @@ const accommodationRoutes = require('./routes/accommodationRoutes');
 
 const app = express();
 
-// 從環境變數獲取允許的域名
-const corsOptions = {
-  origin: function(origin, callback) {
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'https://travel-planner-web.onrender.com',
-      'https://travelplan.onrender.com'
-    ];
-    
-    // 允許沒有 origin 的請求（如 Postman）
-    if (!origin) {
-      return callback(null, true);
-    }
-    
-    if (allowedOrigins.includes(origin) || /\.onrender\.com$/.test(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('不允許的來源'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'Accept',
-    'Origin',
-    'X-Request-ID',
-    'X-Debug-Request'
-  ],
-  exposedHeaders: ['Content-Length', 'X-Request-ID'],
-  credentials: true,
-  maxAge: 86400 // 24 小時
-};
+// 啟用 CORS - 必須在所有中間件之前
+app.use((req, res, next) => {
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'https://travel-planner-web.onrender.com',
+    'https://travelplan.onrender.com'
+  ];
+  
+  const origin = req.headers.origin;
+  
+  // 設置 CORS headers
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin, X-Request-ID, X-Debug-Request');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Length, X-Request-ID');
+    res.setHeader('Access-Control-Max-Age', '86400');
+  }
 
-// 啟用 CORS
-app.use(cors(corsOptions));
+  // 處理 OPTIONS 請求
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  next();
+});
+
+// Body parser 中間件
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // 調試中間件
 app.use((req, res, next) => {
@@ -64,10 +59,6 @@ app.use((req, res, next) => {
   });
   next();
 });
-
-// Body parser
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 // 請求體解析中間件
 app.use((req, res, next) => {
