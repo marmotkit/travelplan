@@ -17,36 +17,47 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// CORS 設置
-app.use(cors({
+// 確保 CORS 中間件在所有路由之前
+const corsOptions = {
   origin: ['http://localhost:5173', 'https://travel-planner-web.onrender.com'],
-  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Request-ID'],
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-}));
+  exposedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  maxAge: 86400, // 預檢請求的結果可以快取 24 小時
+  optionsSuccessStatus: 204,
+  preflightContinue: false
+};
+
+// 先處理 CORS
+app.use(cors(corsOptions));
+
+// 處理 OPTIONS 請求
+app.options('*', cors(corsOptions));
 
 // 調試中間件
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`, {
+  console.log('請求信息:', {
+    method: req.method,
+    path: req.path,
     origin: req.headers.origin,
+    headers: {
+      'content-type': req.headers['content-type'],
+      'x-request-id': req.headers['x-request-id']
+    },
     timestamp: new Date().toISOString()
   });
   next();
 });
 
-// 確保 OPTIONS 請求能被正確處理
-app.options('*', cors());
-
 // API 路由
 app.use('/api/users', userRoutes);
-app.use('/api/plans', planRoutes);
-app.use('/api/trip-items', tripItemRoutes);
-app.use('/api/accommodations', accommodationRoutes);
-app.use('/api/budgets', budgetRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/travel-info', travelInfoRoutes);
+app.use('/api/plans', auth, planRoutes);
+app.use('/api/trip-items', auth, tripItemRoutes);
+app.use('/api/accommodations', auth, accommodationRoutes);
+app.use('/api/budgets', auth, budgetRoutes);
+app.use('/api/dashboard', auth, dashboardRoutes);
+app.use('/api/travel-info', auth, travelInfoRoutes);
 
 // 根路由
 app.get('/', (req, res) => {
@@ -62,7 +73,8 @@ app.use((req, res) => {
   console.log('404:', {
     method: req.method,
     path: req.path,
-    origin: req.headers.origin
+    origin: req.headers.origin,
+    headers: req.headers
   });
   res.status(404).json({
     message: '找不到請求的資源',
@@ -75,6 +87,7 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   console.error('錯誤:', {
     message: err.message,
+    stack: err.stack,
     method: req.method,
     path: req.path,
     origin: req.headers.origin

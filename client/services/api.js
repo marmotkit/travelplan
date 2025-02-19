@@ -25,18 +25,20 @@ function generateRequestId() {
 // 創建 axios 實例
 export const api = axios.create({
   baseURL: BASE_URL,
+  timeout: 10000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    'X-Request-ID': generateRequestId()
-  },
-  timeout: 10000,  // 10 秒超時
-  withCredentials: true  // 啟用跨域請求攜帶憑證
+    'Accept': 'application/json'
+  }
 });
 
 // 請求攔截器
 api.interceptors.request.use(
   (config) => {
+    // 添加請求 ID
+    config.headers['X-Request-ID'] = generateRequestId();
+
     // 從 localStorage 獲取 token
     const token = localStorage.getItem('token');
     if (token) {
@@ -48,18 +50,11 @@ api.interceptors.request.use(
       url: config.url,
       headers: {
         'Content-Type': config.headers['Content-Type'],
-        'X-Request-ID': config.headers['X-Request-ID']
+        'X-Request-ID': config.headers['X-Request-ID'],
+        'Origin': window.location.origin
       },
       data: config.data
     });
-
-    // 添加時間戳防止快取
-    if (config.method === 'get') {
-      config.params = {
-        ...config.params,
-        _t: Date.now()
-      };
-    }
 
     return config;
   },
@@ -86,7 +81,8 @@ api.interceptors.response.use(
     console.error('API 響應錯誤:', {
       status: error.response?.status,
       data: error.response?.data,
-      message: error.message
+      message: error.message,
+      headers: error.response?.headers
     });
     return Promise.reject(error);
   }
@@ -153,7 +149,8 @@ export const authApi = {
     } catch (error) {
       console.error('登入錯誤:', {
         status: error.response?.status,
-        message: error.response?.data?.message || error.message
+        message: error.response?.data?.message || error.message,
+        headers: error.response?.headers
       });
       throw error;
     }
