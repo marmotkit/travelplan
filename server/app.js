@@ -14,11 +14,21 @@ const accommodationRoutes = require('./routes/accommodationRoutes');
 const app = express();
 
 // 從環境變數獲取允許的域名
-const allowedOrigins = [
-  'https://travel-planner-web.onrender.com',
-  'http://localhost:5173',
-  'http://127.0.0.1:5173'
-];
+const corsOptions = {
+  origin: [
+    'http://localhost:5173',
+    'https://travel-planner-web.onrender.com',
+    /\.onrender\.com$/
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Debug-Request'],
+  exposedHeaders: ['Content-Length', 'X-Request-ID'],
+  credentials: false,
+  maxAge: 86400 // 24 小時
+};
+
+// 啟用 CORS
+app.use(cors(corsOptions));
 
 // 調試中間件
 app.use((req, res, next) => {
@@ -33,37 +43,6 @@ app.use((req, res, next) => {
     timestamp: new Date().toISOString()
   });
   next();
-});
-
-// CORS 配置
-app.use(cors());
-
-// 確保 CORS headers 被設置
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Debug-Request');
-  
-  // 記錄 CORS 相關信息
-  console.log('CORS Headers:', {
-    origin: req.headers.origin,
-    method: req.method,
-    path: req.path,
-    allowedHeaders: req.headers['access-control-request-headers'],
-    timestamp: new Date().toISOString()
-  });
-
-  // 處理 OPTIONS 請求
-  if (req.method === 'OPTIONS') {
-    console.log('處理 OPTIONS 請求:', {
-      path: req.path,
-      headers: req.headers,
-      timestamp: new Date().toISOString()
-    });
-    res.sendStatus(200);
-  } else {
-    next();
-  }
 });
 
 // Body parser
