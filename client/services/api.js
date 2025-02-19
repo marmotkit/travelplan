@@ -21,7 +21,7 @@ export const api = axios.create({
     'Accept': 'application/json'
   },
   timeout: 10000,  // 10 秒超時
-  withCredentials: false  // 不需要憑證
+  withCredentials: true  // 啟用跨域請求攜帶憑證
 });
 
 // 請求攔截器

@@ -15,11 +15,24 @@ const app = express();
 
 // 從環境變數獲取允許的域名
 const corsOptions = {
-  origin: [
-    'http://localhost:5173',
-    'https://travel-planner-web.onrender.com',
-    /\.onrender\.com$/
-  ],
+  origin: function(origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'https://travel-planner-web.onrender.com',
+      'https://travelplan.onrender.com'
+    ];
+    
+    // 允許沒有 origin 的請求（如 Postman）
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.includes(origin) || /\.onrender\.com$/.test(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('不允許的來源'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: [
     'Content-Type',
@@ -30,7 +43,7 @@ const corsOptions = {
     'X-Debug-Request'
   ],
   exposedHeaders: ['Content-Length', 'X-Request-ID'],
-  credentials: false,
+  credentials: true,
   maxAge: 86400 // 24 小時
 };
 
