@@ -10,7 +10,8 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true
+    required: true,
+    select: false
   },
   name: {
     type: String,
@@ -31,13 +32,26 @@ const userSchema = new mongoose.Schema({
 
 // 密碼加密中間件
 userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  
   try {
+    // 只有在密碼被修改時才重新加密
+    if (!this.isModified('password')) {
+      return next();
+    }
+
+    console.log('加密密碼:', { 
+      username: this.username,
+      isNewUser: this.isNew
+    });
+
     const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
+    const hash = await bcrypt.hash(this.password, salt);
+    this.password = hash;
     next();
   } catch (error) {
+    console.error('密碼加密錯誤:', {
+      error: error.message,
+      username: this.username
+    });
     next(error);
   }
 });
@@ -45,11 +59,22 @@ userSchema.pre('save', async function(next) {
 // 驗證密碼方法
 userSchema.methods.comparePassword = async function(candidatePassword) {
   try {
-    // 使用 bcrypt.compare 而不是直接比較
-    return await bcrypt.compare(candidatePassword, this.password);
+    console.log('比較密碼:', { 
+      username: this.username,
+      hasStoredPassword: !!this.password 
+    });
+
+    const isMatch = await bcrypt.compare(candidatePassword, this.password);
+    return isMatch;
   } catch (error) {
+    console.error('密碼比較錯誤:', {
+      error: error.message,
+      username: this.username
+    });
     throw error;
   }
 };
 
-module.exports = mongoose.model('User', userSchema); 
+const User = mongoose.model('User', userSchema);
+
+module.exports = User;

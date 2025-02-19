@@ -1,4 +1,5 @@
 import axios from 'axios';
+import crypto from 'crypto';
 
 // 使用正確的域名
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://travelplan-llmo.onrender.com';
@@ -19,7 +20,7 @@ export const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'X-Request-ID': Math.random().toString(36).substring(7)
+    'X-Request-ID': crypto.randomUUID()
   },
   timeout: 10000,  // 10 秒超時
   withCredentials: true  // 啟用跨域請求攜帶憑證
@@ -28,6 +29,22 @@ export const api = axios.create({
 // 請求攔截器
 api.interceptors.request.use(
   (config) => {
+    // 從 localStorage 獲取 token
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    console.log('API 請求:', {
+      method: config.method,
+      url: config.url,
+      headers: {
+        'Content-Type': config.headers['Content-Type'],
+        'X-Request-ID': config.headers['X-Request-ID']
+      },
+      data: config.data
+    });
+
     // 添加時間戳防止快取
     if (config.method === 'get') {
       config.params = {
@@ -35,9 +52,11 @@ api.interceptors.request.use(
         _t: Date.now()
       };
     }
+
     return config;
   },
   (error) => {
+    console.error('API 請求錯誤:', error);
     return Promise.reject(error);
   }
 );
@@ -45,12 +64,20 @@ api.interceptors.request.use(
 // 響應攔截器
 api.interceptors.response.use(
   (response) => {
+    console.log('API 響應:', {
+      status: response.status,
+      data: response.data,
+      headers: {
+        'content-type': response.headers['content-type'],
+        'x-request-id': response.headers['x-request-id']
+      }
+    });
     return response.data;
   },
   (error) => {
-    console.error('API Error:', {
-      config: error.config,
-      response: error.response,
+    console.error('API 響應錯誤:', {
+      status: error.response?.status,
+      data: error.response?.data,
       message: error.message
     });
     return Promise.reject(error);
