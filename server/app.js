@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const cors = require('cors');
 const { auth } = require('./middleware/auth');
 const planRoutes = require('./routes/planRoutes');
 const tripItemRoutes = require('./routes/tripItemRoutes');
@@ -12,49 +13,17 @@ const accommodationRoutes = require('./routes/accommodationRoutes');
 
 const app = express();
 
-// Body parser 中間件
+// 基本中間件
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// CORS 預檢請求處理
-app.options('*', (req, res) => {
-  const allowedOrigins = [
-    'http://localhost:5173',
-    'https://travel-planner-web.onrender.com'
-  ];
-  
-  const origin = req.headers.origin;
-  
-  if (allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin, X-Request-ID');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Max-Age', '86400');
-  }
-  
-  res.status(200).end();
-});
-
-// CORS 中間件
-app.use((req, res, next) => {
-  const allowedOrigins = [
-    'http://localhost:5173',
-    'https://travel-planner-web.onrender.com'
-  ];
-  
-  const origin = req.headers.origin;
-  
-  if (allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin, X-Request-ID');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Max-Age', '86400');
-  }
-
-  next();
-});
+// CORS 設置
+app.use(cors({
+  origin: ['http://localhost:5173', 'https://travel-planner-web.onrender.com'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Request-ID']
+}));
 
 // 調試中間件
 app.use((req, res, next) => {
