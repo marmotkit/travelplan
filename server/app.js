@@ -29,22 +29,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// 啟用 CORS
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://travel-planner-web.onrender.com');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Request-ID');
-  res.header('Access-Control-Expose-Headers', 'Content-Type, Authorization');
-  
-  // 處理 OPTIONS 請求
-  if (req.method === 'OPTIONS') {
-    console.log('處理 OPTIONS 請求');
-    return res.status(200).end();
-  }
-  
-  next();
-});
+// CORS 配置
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production'
+    ? ['https://travel-planner-web.onrender.com']
+    : ['http://localhost:5173'],
+  credentials: true, // 允許跨域請求攜帶 cookies
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // API 路由
 app.use('/api/users', userRoutes);

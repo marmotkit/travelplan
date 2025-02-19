@@ -9,18 +9,17 @@ function generateRequestId() {
   });
 }
 
-const baseURL = import.meta.env.VITE_API_URL || 'https://travelplan.onrender.com';
-console.log('API Base URL:', baseURL);
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://travelplan.onrender.com/api';
 
 // 創建 axios 實例
 const api = axios.create({
-  baseURL,
+  baseURL: BASE_URL,
   timeout: 10000,
-  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
-  }
+  },
+  withCredentials: true // 允許跨域請求攜帶 cookies
 });
 
 // 請求攔截器
@@ -65,6 +64,16 @@ api.interceptors.response.use(
     return response.data;
   },
   (error) => {
+    if (error.response) {
+      // 處理 401 未授權錯誤
+      if (error.response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+      // 處理其他錯誤
+      const message = error.response.data?.message || '發生錯誤，請稍後再試';
+      console.error('API Error:', message);
+    }
     console.error('API 響應錯誤:', {
       status: error.response?.status,
       data: error.response?.data,
