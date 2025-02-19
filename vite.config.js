@@ -43,6 +43,17 @@ export default defineConfig({
         target: 'https://travelplan.onrender.com',
         changeOrigin: true,
         secure: false,
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('proxy error', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            console.log('發送請求到:', req.url);
+          });
+          proxy.on('proxyRes', (proxyRes, req, _res) => {
+            console.log('收到響應:', proxyRes.statusCode);
+          });
+        }
       }
     }
   }

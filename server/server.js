@@ -2,12 +2,12 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 
+// CORS 配置
 const corsOptions = {
-  origin: ['https://travel-planner-web.onrender.com'],
+  origin: 'https://travel-planner-web.onrender.com',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-request-id'],
   credentials: true,
-  preflightContinue: false,
   optionsSuccessStatus: 204
 };
 
@@ -17,19 +17,17 @@ app.use(cors(corsOptions));
 // 處理 preflight 請求
 app.options('*', cors(corsOptions));
 
-// 解析 JSON 請求
+// 解析 JSON
 app.use(express.json());
 
-// 登入路由
-app.post('/api/login', async (req, res) => {
+// 登入路由 - 注意這裡改為 /api/users/login
+app.post('/api/users/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    // 您的登入邏輯...
-    
+    // 登入邏輯...
     res.status(200).json({
       success: true,
-      message: '登入成功',
-      // 其他需要返回的數據...
+      message: '登入成功'
     });
   } catch (error) {
     res.status(400).json({
@@ -39,12 +37,12 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// 確保所有路由都有正確的錯誤處理
+// 錯誤處理中介軟體
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error(err);
   res.status(500).json({
     success: false,
-    message: '伺服器內部錯誤'
+    message: '伺服器錯誤'
   });
 });
 
