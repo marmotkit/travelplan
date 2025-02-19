@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -43,14 +44,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  },
   lastLogin: {
     type: Date
   }
@@ -91,6 +84,5 @@ userSchema.methods.generateAuthToken = function() {
   );
 };
 
-const User = mongoose.model('User', userSchema);
-
-module.exports = User;
+// 檢查模型是否已經存在
+module.exports = mongoose.models.User || mongoose.model('User', userSchema);

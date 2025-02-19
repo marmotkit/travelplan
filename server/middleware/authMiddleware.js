@@ -1,5 +1,8 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/userModel');
+const mongoose = require('mongoose');
+
+// 獲取用戶模型
+const User = mongoose.model('User');
 
 const authMiddleware = async (req, res, next) => {
   try {
