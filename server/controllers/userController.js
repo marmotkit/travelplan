@@ -151,6 +151,63 @@ exports.createUser = async (req, res) => {
   }
 };
 
+// 註冊用戶
+exports.register = async (req, res) => {
+  try {
+    const { username, password, email } = req.body;
+
+    // Validate request body
+    if (!username || !password || !email) {
+      return res.status(400).json({
+        success: false,
+        message: '請提供用戶名、密碼和電子郵件'
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ 
+      $or: [{ username }, { email }] 
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: '用戶名或電子郵件已被使用'
+      });
+    }
+
+    // Create new user
+    const user = await User.create({
+      username,
+      email,
+      password, // password will be hashed by the User model pre-save middleware
+      isActive: true,
+      role: 'user'
+    });
+
+    // Create JWT token
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      jwtSecret,
+      { expiresIn: jwtExpiresIn }
+    );
+
+    // Remove password from response
+    user.password = undefined;
+
+    res.status(201).json({
+      success: true,
+      data: { user, token }
+    });
+  } catch (error) {
+    console.error('註冊錯誤:', error);
+    res.status(500).json({
+      success: false,
+      message: '註冊過程中發生錯誤'
+    });
+  }
+};
+
 // 獲取所有用戶
 exports.getAllUsers = async (req, res) => {
   try {
