@@ -17,5 +17,7 @@ export default defineConfig({
   },
   define: {
     'process.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || 'https://travelplan-llmo.onrender.com')
-  }
+  },
+  // 添加 publicDir 配置
+  publicDir: 'public'
 });

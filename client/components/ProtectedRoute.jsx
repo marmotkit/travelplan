@@ -1,18 +1,21 @@
 import { Navigate, useLocation } from 'react-router-dom';
-import { authApi } from '../services/authApi';
+import { useAuth } from '../contexts/AuthContext';
 
-export const ProtectedRoute = ({ children, adminOnly = false }) => {
+export const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const location = useLocation();
-  const isAuthenticated = authApi.isAuthenticated();
-  const isAdmin = authApi.isAdmin();
+  const { user, loading } = useAuth();
 
-  if (!isAuthenticated) {
+  if (loading) {
+    return <div>載入中...</div>;
+  }
+
+  if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (adminOnly && !isAdmin) {
+  if (requireAdmin && user.role !== 'admin') {
     return <Navigate to="/dashboard" replace />;
   }
 
   return children;
-}; 
+};

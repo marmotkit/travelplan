@@ -187,4 +187,9 @@ export const travelInfoApi = {
   create: (data) => api.post('/api/travel-info', data),
   update: (id, data) => api.put(`/api/travel-info/${id}`, data),
   delete: (id) => api.delete(`/api/travel-info/${id}`)
-}; 
+};
+
+export const authApi = {
+  login: (credentials) => api.post('/api/users/login', credentials),
+  logout: () => api.post('/api/users/logout'),
+};

@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import { UNSAFE_NavigationContext } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
 import { LocalizationProvider } from '@mui/x-date-pickers';
@@ -14,8 +13,8 @@ import AccommodationList from './pages/AccommodationList';
 import BudgetList from './pages/BudgetList';
 import Login from './pages/Login';
 import UserManagement from './pages/UserManagement';
-import { authApi } from './services/authApi';
 import ErrorBoundary from './components/ErrorBoundary';
+import { AuthProvider } from './contexts/AuthContext';
 
 const theme = createTheme({
   palette: {
@@ -30,34 +29,37 @@ const theme = createTheme({
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
-        <ErrorBoundary>
-          <Router>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Layout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<Navigate to="/dashboard" replace />} />
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="users" element={<UserManagement />} />
-                <Route path="plans/*" element={<PlanRoutes />} />
-                <Route path="accommodations" element={<AccommodationList />} />
-                <Route path="budgets" element={<BudgetList />} />
-              </Route>
-            </Routes>
-          </Router>
-        </ErrorBoundary>
-      </LocalizationProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ThemeProvider theme={theme}>
+          <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
+            <CssBaseline />
+            <Router>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <Outlet />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/plans/*" element={<PlanRoutes />} />
+                  <Route path="/accommodations" element={<AccommodationList />} />
+                  <Route path="/budgets" element={<BudgetList />} />
+                  <Route path="/users" element={<UserManagement />} />
+                </Route>
+              </Routes>
+            </Router>
+          </LocalizationProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 
-export default App; 
+export default App;

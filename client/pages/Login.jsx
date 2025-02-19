@@ -8,10 +8,11 @@ import {
   Typography,
   Alert
 } from '@mui/material';
-import { authApi } from '../services/authApi';
+import { useAuth } from '../contexts/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -30,14 +31,14 @@ const Login = () => {
     setError('');
     
     try {
-      const response = await authApi.login(formData.username, formData.password);
-      if (response.user.role === 'admin') {
+      const user = await login(formData);
+      if (user.role === 'admin') {
         navigate('/users');
       } else {
         navigate('/dashboard');
       }
     } catch (error) {
-      setError(error.response?.data?.message || '登入失敗');
+      setError(error.response?.data?.message || '登入失敗，請檢查您的帳號密碼');
     }
   };
 
@@ -56,10 +57,13 @@ const Login = () => {
         sx={{
           p: 4,
           width: '100%',
-          maxWidth: 400
+          maxWidth: 400,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2
         }}
       >
-        <Typography variant="h5" align="center" gutterBottom>
+        <Typography variant="h5" component="h1" gutterBottom align="center">
           登入
         </Typography>
         
@@ -68,18 +72,17 @@ const Login = () => {
             {error}
           </Alert>
         )}
-        
+
         <form onSubmit={handleSubmit}>
           <TextField
             fullWidth
-            label="用戶名"
+            label="使用者名稱"
             name="username"
             value={formData.username}
             onChange={handleChange}
             margin="normal"
             required
           />
-          
           <TextField
             fullWidth
             label="密碼"
@@ -90,7 +93,6 @@ const Login = () => {
             margin="normal"
             required
           />
-          
           <Button
             type="submit"
             fullWidth
@@ -105,4 +107,4 @@ const Login = () => {
   );
 };
 
-export default Login; 
+export default Login;
