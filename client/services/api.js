@@ -1,18 +1,5 @@
 import axios from 'axios';
 
-// 使用正確的域名
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://travelplan-llmo.onrender.com';
-
-if (!BASE_URL) {
-  console.error('API URL not configured! Please check .env file');
-}
-
-console.log('API Configuration:', {
-  baseUrl: BASE_URL,
-  environment: import.meta.env.MODE,
-  timestamp: new Date().toISOString()
-});
-
 // 生成請求 ID
 function generateRequestId() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -22,8 +9,11 @@ function generateRequestId() {
   });
 }
 
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://travelplan-llmo.onrender.com';
+console.log('API Base URL:', BASE_URL);
+
 // 創建 axios 實例
-export const api = axios.create({
+const api = axios.create({
   baseURL: BASE_URL,
   timeout: 10000,
   withCredentials: true,
@@ -48,10 +38,10 @@ api.interceptors.request.use(
     console.log('API 請求:', {
       method: config.method,
       url: config.url,
+      baseURL: config.baseURL,
       headers: {
         'Content-Type': config.headers['Content-Type'],
-        'X-Request-ID': config.headers['X-Request-ID'],
-        'Origin': window.location.origin
+        'X-Request-ID': config.headers['X-Request-ID']
       },
       data: config.data
     });
@@ -70,10 +60,7 @@ api.interceptors.response.use(
     console.log('API 響應:', {
       status: response.status,
       data: response.data,
-      headers: {
-        'content-type': response.headers['content-type'],
-        'x-request-id': response.headers['x-request-id']
-      }
+      headers: response.headers
     });
     return response.data;
   },
@@ -82,7 +69,11 @@ api.interceptors.response.use(
       status: error.response?.status,
       data: error.response?.data,
       message: error.message,
-      headers: error.response?.headers
+      config: {
+        method: error.config?.method,
+        url: error.config?.url,
+        baseURL: error.config?.baseURL
+      }
     });
     return Promise.reject(error);
   }
@@ -215,3 +206,5 @@ export const travelInfoApi = {
   update: (id, data) => api.put(`/api/travel-info/${id}`, data),
   delete: (id) => api.delete(`/api/travel-info/${id}`)
 };
+
+export default api;
