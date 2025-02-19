@@ -37,7 +37,8 @@ const budgetSchema = new mongoose.Schema({
     note: String
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  collection: 'budgets'  // 指定集合名稱
 });
 
 module.exports = mongoose.model('Budget', budgetSchema); 

@@ -1,56 +1,27 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 if (!API_URL) {
   console.error('API URL not configured! Please check .env file');
 }
 
+// 創建一個默認的用戶
+const defaultUser = {
+  username: 'marmot',
+  name: '梁坤棠',
+  role: 'admin'
+};
+
 // 創建 axios 實例
 export const api = axios.create({
   baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'X-User-Role': defaultUser.role,
+    'X-User-Name': defaultUser.username
   }
 });
-
-// 請求攔截器
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    console.log('Request interceptor - token:', token ? '存在' : '不存在');
-    
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    
-    console.log('Request config:', {
-      url: config.url,
-      method: config.method,
-      headers: config.headers
-    });
-    
-    return config;
-  },
-  (error) => {
-    console.error('Request interceptor error:', error);
-    return Promise.reject(error);
-  }
-);
-
-// 響應攔截器
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // 未認證，清除本地存儲並重定向到登入頁
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
 
 export const planApi = {
   getAll: () => api.get('/plans'),
@@ -61,8 +32,17 @@ export const planApi = {
   downloadPDF: (id) => api.get(`/plans/${id}/pdf`, { responseType: 'blob' }),
 };
 
+export const tripItemApi = {
+  getAll: (planId) => api.get(`/trip-items?planId=${planId}`),
+  getByActivity: (activityId) => api.get(`/trip-items/activity/${activityId}`),
+  create: (data) => api.post('/trip-items', data),
+  update: (id, data) => api.put(`/trip-items/${id}`, data),
+  delete: (id) => api.delete(`/trip-items/${id}`)
+};
+
 export const accommodationApi = {
   getAll: () => api.get('/accommodations'),
+  getById: (id) => api.get(`/accommodations/${id}`),
   getByActivity: (activityId) => api.get(`/accommodations/activity/${activityId}`),
   create: (data) => api.post('/accommodations', data),
   update: (id, data) => api.put(`/accommodations/${id}`, data),
@@ -73,6 +53,7 @@ export const accommodationApi = {
 
 export const budgetApi = {
   getAll: () => api.get('/budgets'),
+  getById: (id) => api.get(`/budgets/${id}`),
   getByActivity: (activityId) => api.get(`/budgets/activity/${activityId}`),
   create: (data) => api.post('/budgets', data),
   update: (id, data) => api.put(`/budgets/${id}`, data),
@@ -82,20 +63,15 @@ export const budgetApi = {
 };
 
 export const dashboardApi = {
-  getSummary: () => api.get('/dashboard/summary')
-};
-
-export const tripItemApi = {
-  getAll: () => api.get('/trip-items'),
-  getByActivity: (activityId) => api.get(`/trip-items/activity/${activityId}`),
-  create: (data) => api.post('/trip-items', data),
-  update: (id, data) => api.put(`/trip-items/${id}`, data),
-  delete: (id) => api.delete(`/trip-items/${id}`)
+  getSummary: () => api.get('/dashboard/summary'),
+  getStats: () => api.get('/dashboard/stats')
 };
 
 export const travelInfoApi = {
   getAll: () => api.get('/travel-info'),
   getByActivity: (activityId) => api.get(`/travel-info/activity/${activityId}`),
+  getWeather: (city) => api.get(`/travel-info/weather?city=${city}`),
+  getCurrency: (from, to) => api.get(`/travel-info/currency?from=${from}&to=${to}`),
   create: (data) => api.post('/travel-info', data),
   update: (id, data) => api.put(`/travel-info/${id}`, data),
   delete: (id) => api.delete(`/travel-info/${id}`)

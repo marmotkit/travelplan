@@ -24,7 +24,8 @@ const accommodationSchema = new mongoose.Schema({
     default: 'pending'
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  collection: 'accommodations'  // 指定集合名稱
 });
 
 module.exports = mongoose.model('Accommodation', accommodationSchema); 

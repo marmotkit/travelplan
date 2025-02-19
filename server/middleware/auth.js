@@ -1,30 +1,38 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config/config');
+const User = require('../models/User');
 
 exports.auth = async (req, res, next) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-    console.log('Auth middleware - token:', token ? '存在' : '不存在');
-    
-    if (!token) {
-      console.log('Auth middleware - 無 token');
-      return res.status(401).json({ message: '請先登入' });
+    // 從請求頭中讀取用戶信息
+    const userRole = req.headers['x-user-role'];
+    const userName = req.headers['x-user-name'];
+
+    if (!userRole || !userName) {
+      return res.status(401).json({ message: '未提供用戶信息' });
     }
-    
-    const decoded = jwt.verify(token, config.jwtSecret);
-    console.log('Auth middleware - token 驗證成功:', decoded);
-    
-    req.user = decoded;
+
+    // 設置用戶信息
+    req.user = {
+      username: userName,
+      role: userRole
+    };
+
     next();
   } catch (error) {
-    console.error('Auth middleware - 錯誤:', error);
-    res.status(401).json({ message: '認證失敗', error: error.message });
+    console.error('Auth middleware error:', error);
+    return res.status(500).json({ message: '伺服器錯誤' });
   }
 };
 
 exports.adminOnly = async (req, res, next) => {
-  if (req.user.role !== 'admin') {
+  try {
+    if (req.user && req.user.role === 'admin') {
+      return next();
+    }
     return res.status(403).json({ message: '需要管理員權限' });
+  } catch (error) {
+    console.error('Admin check error:', error);
+    return res.status(500).json({ message: '伺服器錯誤' });
   }
-  next();
-}; 
+};

@@ -1,4 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import { authApi } from '../services/authApi';
 
 export const ProtectedRoute = ({ children, adminOnly = false }) => {
@@ -6,7 +7,16 @@ export const ProtectedRoute = ({ children, adminOnly = false }) => {
   const isAuthenticated = authApi.isAuthenticated();
   const isAdmin = authApi.isAdmin();
 
+  useEffect(() => {
+    // 檢查 token 是否有效
+    if (!isAuthenticated) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
+  }, [isAuthenticated]);
+
   if (!isAuthenticated) {
+    // 保存嘗試訪問的 URL
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
@@ -15,4 +25,4 @@ export const ProtectedRoute = ({ children, adminOnly = false }) => {
   }
 
   return children;
-}; 
+};

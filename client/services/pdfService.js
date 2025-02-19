@@ -1,13 +1,15 @@
 // 先引入核心功能
-import * as pdfMake from "pdfmake/build/pdfmake";
+import pdfMake from "pdfmake/build/pdfmake";
 // 再引入字型
-import * as pdfFonts from 'pdfmake/build/vfs_fonts';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
 
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
 // 設定虛擬檔案系統和字型
-pdfMake.vfs = pdfFonts.pdfMake.vfs;
+if (pdfMake.vfs === undefined) {
+  pdfMake.vfs = pdfFonts.pdfMake.vfs;
+}
 
 // 定義字型配置
 const fonts = {
@@ -36,7 +38,9 @@ const docDefinition = {
 };
 
 // 初始化 pdfMake 配置
-pdfMake.fonts = fonts;
+if (pdfMake.fonts === undefined) {
+  Object.assign(pdfMake, { fonts });
+}
 
 // 新增日期檢查和格式化函數
 const isValidDate = (date) => {

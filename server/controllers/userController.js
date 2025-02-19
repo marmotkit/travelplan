@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const config = require('../config/config');
 
 exports.login = async (req, res) => {
@@ -8,34 +9,36 @@ exports.login = async (req, res) => {
     console.log('Login attempt:', { 
       username,
       requestBody: req.body,
-      headers: req.headers
+      hasPassword: !!password,
+      passwordLength: password?.length
     });
     
     // 檢查用戶是否存在
     const user = await User.findOne({ username });
-    console.log('Database query result:', {
-      userFound: !!user,
-      userId: user?._id,
-      userRole: user?.role,
-      hasPassword: !!user?.password
+    console.log('User lookup result:', {
+      found: !!user,
+      username: user?.username,
+      role: user?.role,
+      hashedPassword: user?.password ? `${user.password.substring(0, 10)}...` : 'none'
     });
     
     if (!user) {
-      console.log('User not found:', username);
+      console.log('Login failed: User not found');
       return res.status(401).json({ message: '用戶名或密碼錯誤' });
     }
     
     // 檢查密碼是否正確
-    console.log('Attempting password comparison');
-    const isMatch = await user.comparePassword(password);
-    console.log('Password comparison result:', {
+    console.log('Attempting password verification...');
+    const isMatch = await bcrypt.compare(password, user.password);
+    console.log('Password verification result:', {
       isMatch,
-      providedPassword: password,
-      hashedPasswordLength: user.password?.length
+      inputPasswordLength: password?.length,
+      storedPasswordLength: user.password?.length,
+      storedPasswordStart: user.password.substring(0, 10)
     });
     
     if (!isMatch) {
-      console.log('Password incorrect for user:', username);
+      console.log('Login failed: Password mismatch');
       return res.status(401).json({ message: '用戶名或密碼錯誤' });
     }
     
@@ -48,10 +51,10 @@ exports.login = async (req, res) => {
     
     console.log('Login successful:', {
       username,
-      userId: user._id,
       role: user.role
     });
     
+    // 返回用戶信息和 token
     res.json({
       token,
       user: {
@@ -61,10 +64,10 @@ exports.login = async (req, res) => {
         role: user.role
       }
     });
+    
   } catch (error) {
     console.error('Login error:', error);
-    console.error('Error stack:', error.stack);
-    res.status(500).json({ message: '登入失敗', error: error.message });
+    res.status(500).json({ message: '伺服器錯誤', error: error.message });
   }
 };
 
