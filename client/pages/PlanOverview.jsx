@@ -28,7 +28,8 @@ import {
   Delete as DeleteIcon,
   Upload as UploadIcon,
 } from '@mui/icons-material';
-import { planApi, tripItemApi } from '../services/api';
+import planAPI from '../api/plan';
+import tripItemAPI from '../api/tripItem';
 
 const processExcelData = (data) => {
   let currentDate = '';
@@ -137,7 +138,7 @@ const PlanOverview = () => {
     try {
       setIsLoading(true);
       console.log('開始載入數據...');
-      const activitiesRes = await planApi.getAll();
+      const activitiesRes = await planAPI.getAll();
       console.log('活動數據:', activitiesRes.data);
 
       // 確保 activities 是陣列
@@ -165,7 +166,7 @@ const PlanOverview = () => {
 
   const loadTripItems = async () => {
     try {
-      const response = await tripItemApi.getByActivity(selectedActivity);
+      const response = await tripItemAPI.getByActivity(selectedActivity);
       console.log('載入行程項目數據:', response.data);
 
       // 確保數據是陣列
@@ -230,7 +231,7 @@ const PlanOverview = () => {
         items: formattedItems
       });
 
-      await tripItemApi.saveItems(selectedActivity, formattedItems);
+      await tripItemAPI.saveItems(selectedActivity, formattedItems);
       setError('儲存成功');
     } catch (error) {
       console.error('Error saving trip items:', {

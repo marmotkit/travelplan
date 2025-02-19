@@ -32,7 +32,8 @@ import {
   Delete as DeleteIcon,
   Upload as UploadIcon,
 } from '@mui/icons-material';
-import { planApi, budgetApi } from '../services/api';
+import planAPI from '../api/plan';
+import budgetAPI from '../api/budget';
 
 const STATUS_MAP = {
   pending: { label: '待付款', color: 'default' },
@@ -69,7 +70,7 @@ const BudgetList = () => {
     try {
       setIsLoading(true);
       console.log('開始載入數據...');
-      const activitiesRes = await planApi.getAll();
+      const activitiesRes = await planAPI.getAll();
       console.log('活動數據:', activitiesRes.data);
 
       if (!Array.isArray(activitiesRes.data)) {
@@ -116,7 +117,7 @@ const BudgetList = () => {
     try {
       setIsLoading(true);
       console.log('載入活動預算:', selectedActivity);
-      const response = await budgetApi.getByActivity(selectedActivity);
+      const response = await budgetAPI.getByActivity(selectedActivity);
       console.log('取得預算資料:', response.data);
       if (!response.data) {
         console.warn('未找到預算數據');
@@ -149,7 +150,7 @@ const BudgetList = () => {
   const handleStatusChange = async (item) => {
     try {
       const newStatus = item.status === 'pending' ? 'paid' : 'pending';
-      await budgetApi.updateStatus(item._id, newStatus);
+      await budgetAPI.updateStatus(item._id, newStatus);
       await loadBudgets();
     } catch (error) {
       console.error('Error updating status:', error);
@@ -169,7 +170,7 @@ const BudgetList = () => {
     }
 
     try {
-      await budgetApi.saveItems(selectedActivity, [currentItem], summary);
+      await budgetAPI.saveItems(selectedActivity, [currentItem], summary);
       setOpenDialog(false);
       await loadBudgets();
       setError('儲存成功');
@@ -221,7 +222,7 @@ const BudgetList = () => {
 
       if (selectedActivity) {
         console.log('Saving items:', newItems);
-        const response = await budgetApi.saveItems(selectedActivity, newItems, {
+        const response = await budgetAPI.saveItems(selectedActivity, newItems, {
           twdTotal: '',
           thbTotal: '',
           exchangeRate: '',
@@ -291,7 +292,7 @@ const BudgetList = () => {
     }
 
     try {
-      await budgetApi.saveItems(selectedActivity, budgets, summary);
+      await budgetAPI.saveItems(selectedActivity, budgets, summary);
       await loadBudgets();
       setError('總費用儲存成功');
     } catch (error) {
