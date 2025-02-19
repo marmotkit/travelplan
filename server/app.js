@@ -17,22 +17,20 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 確保 CORS 中間件在所有路由之前
+// CORS 配置
 const corsOptions = {
   origin: ['http://localhost:5173', 'https://travel-planner-web.onrender.com'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Request-ID'],
   exposedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  maxAge: 86400, // 預檢請求的結果可以快取 24 小時
-  optionsSuccessStatus: 204,
-  preflightContinue: false
+  maxAge: 86400
 };
 
 // 先處理 CORS
 app.use(cors(corsOptions));
 
-// 處理 OPTIONS 請求
+// 全局處理 OPTIONS 請求
 app.options('*', cors(corsOptions));
 
 // 調試中間件
@@ -41,10 +39,7 @@ app.use((req, res, next) => {
     method: req.method,
     path: req.path,
     origin: req.headers.origin,
-    headers: {
-      'content-type': req.headers['content-type'],
-      'x-request-id': req.headers['x-request-id']
-    },
+    headers: req.headers,
     timestamp: new Date().toISOString()
   });
   next();
@@ -76,6 +71,12 @@ app.use((req, res) => {
     origin: req.headers.origin,
     headers: req.headers
   });
+  
+  // 對於 OPTIONS 請求，返回 200
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
   res.status(404).json({
     message: '找不到請求的資源',
     path: req.path,
