@@ -252,16 +252,16 @@ exports.register = async (req, res) => {
   }
 };
 
-// 獲取所有用戶
+// 獲取所有用戶（管理員）
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find({}, '-password');
     res.json({
       success: true,
-      users
+      data: users
     });
   } catch (error) {
-    console.error('獲取用戶列表錯誤:', error);
+    console.error('獲取所有用戶錯誤:', error);
     res.status(500).json({
       success: false,
       message: '獲取用戶列表時發生錯誤'
@@ -269,17 +269,46 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-// 更新用戶
+// 獲取特定用戶（管理員）
+exports.getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id, '-password');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: '找不到用戶'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    console.error('獲取用戶錯誤:', error);
+    res.status(500).json({
+      success: false,
+      message: '獲取用戶資料時發生錯誤'
+    });
+  }
+};
+
+// 更新特定用戶（管理員）
 exports.updateUser = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { username, role, isActive } = req.body;
+    const { email, password, isActive, role } = req.body;
+    const updateData = {};
+
+    if (email) updateData.email = email;
+    if (password) updateData.password = password;
+    if (typeof isActive !== 'undefined') updateData.isActive = isActive;
+    if (role) updateData.role = role;
 
     const user = await User.findByIdAndUpdate(
-      id,
-      { username, role, isActive },
-      { new: true, select: '-password' }
-    );
+      req.params.id,
+      updateData,
+      { new: true, runValidators: true }
+    ).select('-password');
 
     if (!user) {
       return res.status(404).json({
@@ -290,24 +319,21 @@ exports.updateUser = async (req, res) => {
 
     res.json({
       success: true,
-      message: '用戶更新成功',
-      user
+      data: user
     });
   } catch (error) {
     console.error('更新用戶錯誤:', error);
     res.status(500).json({
       success: false,
-      message: '更新用戶時發生錯誤'
+      message: '更新用戶資料時發生錯誤'
     });
   }
 };
 
-// 刪除用戶
+// 刪除用戶（管理員）
 exports.deleteUser = async (req, res) => {
   try {
-    const { id } = req.params;
-    const user = await User.findByIdAndDelete(id);
-
+    const user = await User.findByIdAndDelete(req.params.id);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -317,7 +343,7 @@ exports.deleteUser = async (req, res) => {
 
     res.json({
       success: true,
-      message: '用戶刪除成功'
+      message: '用戶已成功刪除'
     });
   } catch (error) {
     console.error('刪除用戶錯誤:', error);
