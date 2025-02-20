@@ -15,6 +15,7 @@ import Login from './pages/Login';
 import UserManagement from './pages/UserManagement';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider } from './contexts/AuthContext';
+import ActivityList from './pages/ActivityList';
 
 const theme = createTheme({
   palette: {
@@ -46,12 +47,15 @@ function App() {
                     </ProtectedRoute>
                   }
                 >
-                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/plans/*" element={<PlanRoutes />} />
-                  <Route path="/accommodations" element={<AccommodationList />} />
-                  <Route path="/budgets" element={<BudgetList />} />
-                  <Route path="/users" element={<UserManagement />} />
+                  <Route path="/" element={<Layout />}>
+                    <Route index element={<Navigate to="/dashboard" replace />} />
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="users" element={<UserManagement />} />
+                    <Route path="plans/*" element={<PlanRoutes />} />
+                    <Route path="activities" element={<ActivityList />} />
+                    <Route path="accommodations" element={<AccommodationList />} />
+                    <Route path="budgets" element={<BudgetList />} />
+                  </Route>
                 </Route>
               </Routes>
             </Router>

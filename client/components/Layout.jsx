@@ -16,6 +16,7 @@ import {
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
+  Event as EventIcon,
   ListAlt as ListAltIcon,
   Hotel as HotelIcon,
   AttachMoney as AttachMoneyIcon,
@@ -41,7 +42,8 @@ export default function Layout() {
   
   const userMenuItems = [
     { text: '儀表板', icon: <DashboardIcon />, path: '/dashboard' },
-    { text: '活動管理', icon: <ListAltIcon />, path: '/plans' },
+    { text: '活動管理', icon: <EventIcon />, path: '/activities' },
+    { text: '行程計劃', icon: <ListAltIcon />, path: '/plans' },
     { text: '行程總覽', icon: <ViewListIcon />, path: '/plans/overview' },
     { text: '住宿管理', icon: <HotelIcon />, path: '/accommodations' },
     { text: '預算管理', icon: <AttachMoneyIcon />, path: '/budgets' }
