@@ -1,355 +1,147 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const config = require('../config/config');
 
-// 直接使用環境變數，不再依賴 config.js
-const jwtSecret = process.env.JWT_SECRET || 'your_very_secure_jwt_secret';
-const jwtExpiresIn = '24h';
-
-// 登入
 exports.login = async (req, res) => {
   try {
     const { username, password } = req.body;
-
-    if (!username || !password) {
-      return res.status(400).json({
-        success: false,
-        message: '請提供用戶名和密碼'
-      });
+    console.log('Login attempt:', { 
+      username,
+      requestBody: req.body,
+      hasPassword: !!password,
+      passwordLength: password?.length
+    });
+    
+    // 檢查用戶是否存在
+    const user = await User.findOne({ username });
+    console.log('User lookup result:', {
+      found: !!user,
+      username: user?.username,
+      role: user?.role,
+      hashedPassword: user?.password ? `${user.password.substring(0, 10)}...` : 'none'
+    });
+    
+    if (!user) {
+      console.log('Login failed: User not found');
+      return res.status(401).json({ message: '用戶名或密碼錯誤' });
     }
-
-    const user = await User.findOne({ username }).select('+password');
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({
-        success: false,
-        message: '用戶名或密碼錯誤'
-      });
+    
+    // 檢查密碼是否正確
+    console.log('Attempting password verification...');
+    const isMatch = await bcrypt.compare(password, user.password);
+    console.log('Password verification result:', {
+      isMatch,
+      inputPasswordLength: password?.length,
+      storedPasswordLength: user.password?.length,
+      storedPasswordStart: user.password.substring(0, 10)
+    });
+    
+    if (!isMatch) {
+      console.log('Login failed: Password mismatch');
+      return res.status(401).json({ message: '用戶名或密碼錯誤' });
     }
-
+    
+    // 如果都正確，創建 token
     const token = jwt.sign(
       { id: user._id, role: user.role },
-      jwtSecret,
-      { expiresIn: jwtExpiresIn }
+      config.jwtSecret,
+      { expiresIn: '24h' }
     );
-
-    user.password = undefined;
+    
+    console.log('Login successful:', {
+      username,
+      role: user.role
+    });
+    
+    // 返回用戶信息和 token
     res.json({
-      success: true,
-      data: { user, token }
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        name: user.name,
+        role: user.role
+      }
     });
+    
   } catch (error) {
-    console.error('登入錯誤:', error);
-    res.status(500).json({
-      success: false,
-      message: '登入過程中發生錯誤'
-    });
+    console.error('Login error:', error);
+    res.status(500).json({ message: '伺服器錯誤', error: error.message });
   }
 };
 
-// 登出
-exports.logout = async (req, res) => {
-  try {
-    res.json({
-      success: true,
-      message: '成功登出'
-    });
-  } catch (error) {
-    console.error('登出錯誤:', error);
-    res.status(500).json({
-      success: false,
-      message: '登出過程中發生錯誤'
-    });
-  }
-};
-
-// 獲取用戶資料
-exports.getProfile = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: '找不到用戶'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: user
-    });
-  } catch (error) {
-    console.error('獲取用戶資料錯誤:', error);
-    res.status(500).json({
-      success: false,
-      message: '獲取用戶資料時發生錯誤'
-    });
-  }
-};
-
-// 更新用戶資料
-exports.updateProfile = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const updateData = {};
-
-    if (email) updateData.email = email;
-    if (password) updateData.password = password;
-
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      updateData,
-      { new: true, runValidators: true }
-    );
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: '找不到用戶'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: user
-    });
-  } catch (error) {
-    console.error('更新用戶資料錯誤:', error);
-    res.status(500).json({
-      success: false,
-      message: '更新用戶資料時發生錯誤'
-    });
-  }
-};
-
-// 獲取儀表板統計
-exports.getDashboardStats = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: '找不到用戶'
-      });
-    }
-
-    // TODO: 實現實際的統計數據
-    const stats = {
-      totalTrips: 0,
-      upcomingTrips: 0,
-      completedTrips: 0
-    };
-
-    res.json({
-      success: true,
-      data: stats
-    });
-  } catch (error) {
-    console.error('獲取儀表板統計錯誤:', error);
-    res.status(500).json({
-      success: false,
-      message: '獲取儀表板統計時發生錯誤'
-    });
-  }
-};
-
-// 創建用戶
+// 只有管理員可以使用的用戶管理功能
 exports.createUser = async (req, res) => {
   try {
-    const { username, password, role } = req.body;
-
-    // 檢查用戶名是否已存在
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: '用戶名已存在'
-      });
-    }
-
-    // 創建新用戶
+    const { username, password, name, role } = req.body;
+    
     const user = new User({
       username,
       password,
-      role: role || 'user',
-      isActive: true
+      name,
+      role: role || 'user'
     });
-
+    
     await user.save();
-
     res.status(201).json({
-      success: true,
       message: '用戶創建成功',
       user: {
         id: user._id,
         username: user.username,
-        role: user.role,
-        isActive: user.isActive
+        name: user.name,
+        role: user.role
       }
     });
   } catch (error) {
-    console.error('創建用戶錯誤:', error);
-    res.status(500).json({
-      success: false,
-      message: '創建用戶時發生錯誤'
-    });
+    res.status(500).json({ message: '創建用戶失敗', error: error.message });
   }
 };
 
-// 註冊用戶
-exports.register = async (req, res) => {
-  try {
-    const { username, password, email } = req.body;
-
-    // Validate request body
-    if (!username || !password || !email) {
-      return res.status(400).json({
-        success: false,
-        message: '請提供用戶名、密碼和電子郵件'
-      });
-    }
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ 
-      $or: [{ username }, { email }] 
-    });
-
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: '用戶名或電子郵件已被使用'
-      });
-    }
-
-    // Create new user
-    const user = await User.create({
-      username,
-      email,
-      password, // password will be hashed by the User model pre-save middleware
-      isActive: true,
-      role: 'user'
-    });
-
-    // Create JWT token
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      jwtSecret,
-      { expiresIn: jwtExpiresIn }
-    );
-
-    // Remove password from response
-    user.password = undefined;
-
-    res.status(201).json({
-      success: true,
-      data: { user, token }
-    });
-  } catch (error) {
-    console.error('註冊錯誤:', error);
-    res.status(500).json({
-      success: false,
-      message: '註冊過程中發生錯誤'
-    });
-  }
-};
-
-// 獲取所有用戶（管理員）
 exports.getAllUsers = async (req, res) => {
   try {
+    console.log('收到獲取用戶列表請求');
     const users = await User.find({}, '-password');
-    res.json({
-      success: true,
-      data: users
-    });
+    console.log('查詢到的用戶數量:', users.length);
+    res.json(users);
   } catch (error) {
-    console.error('獲取所有用戶錯誤:', error);
-    res.status(500).json({
-      success: false,
-      message: '獲取用戶列表時發生錯誤'
-    });
+    console.error('獲取用戶列表失敗:', error);
+    res.status(500).json({ message: '獲取用戶列表失敗', error: error.message });
   }
 };
 
-// 獲取特定用戶（管理員）
-exports.getUserById = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id, '-password');
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: '找不到用戶'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: user
-    });
-  } catch (error) {
-    console.error('獲取用戶錯誤:', error);
-    res.status(500).json({
-      success: false,
-      message: '獲取用戶資料時發生錯誤'
-    });
-  }
-};
-
-// 更新特定用戶（管理員）
 exports.updateUser = async (req, res) => {
   try {
-    const { email, password, isActive, role } = req.body;
-    const updateData = {};
-
-    if (email) updateData.email = email;
-    if (password) updateData.password = password;
-    if (typeof isActive !== 'undefined') updateData.isActive = isActive;
-    if (role) updateData.role = role;
-
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, runValidators: true }
-    ).select('-password');
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: '找不到用戶'
-      });
+    const { id } = req.params;
+    const { name, role, isActive, password } = req.body;
+    
+    const updateData = { name, role, isActive };
+    if (password) {
+      updateData.password = password;
     }
-
-    res.json({
-      success: true,
-      data: user
-    });
+    
+    const user = await User.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, select: '-password' }
+    );
+    
+    if (!user) {
+      return res.status(404).json({ message: '用戶不存在' });
+    }
+    
+    res.json(user);
   } catch (error) {
-    console.error('更新用戶錯誤:', error);
-    res.status(500).json({
-      success: false,
-      message: '更新用戶資料時發生錯誤'
-    });
+    res.status(500).json({ message: '更新用戶失敗', error: error.message });
   }
 };
 
-// 刪除用戶（管理員）
 exports.deleteUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: '找不到用戶'
-      });
-    }
-
-    res.json({
-      success: true,
-      message: '用戶已成功刪除'
-    });
+    const { id } = req.params;
+    await User.findByIdAndUpdate(id, { isActive: false });
+    res.json({ message: '用戶已停用' });
   } catch (error) {
-    console.error('刪除用戶錯誤:', error);
-    res.status(500).json({
-      success: false,
-      message: '刪除用戶時發生錯誤'
-    });
+    res.status(500).json({ message: '停用用戶失敗', error: error.message });
   }
-};
+}; 

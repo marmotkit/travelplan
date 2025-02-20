@@ -1,24 +1,12 @@
 {
-  "name": "travel-planner",
+  "name": "travel-plan",
   "version": "1.0.0",
-  "private": true,
-  "workspaces": [
-    "server",
-    "client"
-  ],
   "scripts": {
-    "setup": "node scripts/setup.js",
-    "start": "cd server && node index.js",
-    "build": "cd server && npm install",
-    "test:api": "node scripts/test-api.js",
-    "test:local": "node scripts/test-api.js",
-    "test:deploy": "node scripts/test-deploy.js",
-    "dev:server": "cd server && npm run dev",
-    "dev:client": "cd client && npm run dev"
-  },
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=10.0.0"
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview",
+    "server": "node server/index.js",
+    "server:dev": "nodemon server/index.js"
   },
   "dependencies": {
     "@emotion/react": "^11.11.0",
@@ -28,24 +16,21 @@
     "@mui/x-date-pickers": "^7.24.1",
     "@types/pdfmake": "0.2.2",
     "axios": "^1.4.0",
-    "bcryptjs": "^2.4.3",
-    "compression": "^1.8.0",
     "cors": "^2.8.5",
     "date-fns": "^2.30.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "helmet": "^7.2.0",
-    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
-    "morgan": "^1.10.0",
     "pdfmake": "0.2.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.11.1"
+    "react-router-dom": "^6.11.1",
+    "recharts": "^2.15.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.0.0",
-    "nodemon": "^2.0.22",
+    "nodemon": "^3.1.9",
     "vite": "^4.3.5"
   },
   "main": "vite.config.js",

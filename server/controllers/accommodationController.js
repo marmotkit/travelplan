@@ -106,10 +106,12 @@ exports.updateStatus = async (req, res) => {
 
 exports.getAllAccommodations = async (req, res) => {
   try {
-    const accommodations = await Accommodation.find();
+    const accommodations = await Accommodation.find()
+      .populate('activityId', 'title');
     res.json(accommodations);
   } catch (error) {
-    res.status(500).json({ message: '獲取住宿列表失敗', error: error.message });
+    console.error('獲取住宿列表失敗:', error);
+    res.status(500).json({ message: '獲取住宿列表失敗' });
   }
 };
 

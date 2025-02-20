@@ -1,195 +1,216 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  Container,
-  Grid,
-  Card,
-  CardContent,
-  CardActions,
+  Box,
+  Paper,
   Typography,
   Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  Box,
-  CircularProgress,
   Alert,
   Chip
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Visibility as VisibilityIcon
+  Download as DownloadIcon,
+  CalendarMonth as CalendarIcon,
+  ViewList as ViewListIcon
 } from '@mui/icons-material';
-import planAPI from '../api/plan';
-import tripItemAPI from '../api/tripItem';
-import accommodationAPI from '../api/accommodation';
-import { useAuth } from '../contexts/AuthContext';
+import { 
+  planApi, 
+  tripItemApi, 
+  accommodationApi, 
+  budgetApi, 
+  travelInfoApi 
+} from '../services/api';
+import { generateActivityPDF } from '../services/pdfService';
 
 const PlanList = () => {
   const [plans, setPlans] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [planToDelete, setPlanToDelete] = useState(null);
-  
+  const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   useEffect(() => {
-    fetchPlans();
+    loadPlans();
   }, []);
 
-  const fetchPlans = async () => {
+  const loadPlans = async () => {
     try {
-      setLoading(true);
-      const response = await planAPI.getAll();
-      setPlans(response.data || []);
-    } catch (err) {
-      console.error('獲取行程列表失敗:', err);
-      setError('無法載入行程列表');
-    } finally {
-      setLoading(false);
+      console.log('正在載入活動列表...');
+      const response = await planApi.getAll();
+      console.log('活動列表載入成功:', response.data);
+      setPlans(response.data || []); // 確保 plans 是陣列
+    } catch (error) {
+      console.error('載入活動列表失敗:', error);
+      setError('載入活動列表失敗');
     }
   };
 
-  const handleDelete = async (plan) => {
-    setPlanToDelete(plan);
-    setDeleteDialogOpen(true);
+  const handleDelete = async (id) => {
+    if (!window.confirm('確定要刪除此活動？')) return;
+    
+    try {
+      await planApi.delete(id);
+      await loadPlans();
+    } catch (error) {
+      setError('刪除活動失敗');
+    }
   };
 
-  const confirmDelete = async () => {
-    if (!planToDelete) return;
-
+  const handleDownloadPDF = async (planId) => {
     try {
-      setLoading(true);
-      await planAPI.delete(planToDelete._id);
-      
-      // 刪除相關的行程項目和住宿
-      await Promise.all([
-        tripItemAPI.deleteByPlan(planToDelete._id),
-        accommodationAPI.deleteByPlan(planToDelete._id)
+      // 獲取所有需要的數據
+      const [
+        planRes,
+        tripItemsRes,
+        accommodationsRes,
+        budgetRes,
+        travelInfoRes
+      ] = await Promise.all([
+        planApi.getById(planId),
+        tripItemApi.getByActivity(planId),
+        accommodationApi.getByActivity(planId),
+        budgetApi.getByActivity(planId),
+        travelInfoApi.getByActivity(planId)
       ]);
 
-      await fetchPlans();
-      setError('行程已刪除');
-    } catch (err) {
-      console.error('刪除行程失敗:', err);
-      setError('刪除行程失敗');
-    } finally {
-      setLoading(false);
-      setDeleteDialogOpen(false);
-      setPlanToDelete(null);
+      console.log('Fetched data:', {
+        plan: planRes.data,
+        tripItems: tripItemsRes.data,
+        accommodations: accommodationsRes.data,
+        budget: budgetRes.data,
+        travelInfo: travelInfoRes.data
+      });
+
+      // 生成 PDF
+      const pdf = await generateActivityPDF(
+        planRes.data,
+        tripItemsRes.data || [],
+        accommodationsRes.data || [],
+        budgetRes.data?.items || [],
+        travelInfoRes.data || null
+      );
+
+      // 下載 PDF
+      await pdf.download(`${planRes.data.title}手冊.pdf`);
+      
+    } catch (error) {
+      console.error('下載 PDF 失敗:', error);
+      setError('下載 PDF 失敗');
     }
   };
 
-  const handleCloseDialog = () => {
-    setDeleteDialogOpen(false);
-    setPlanToDelete(null);
-  };
-
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <CircularProgress />
-      </Box>
-    );
-  }
-
   return (
-    <Container>
-      <Box mb={4} display="flex" justifyContent="space-between" alignItems="center">
-        <Typography variant="h4">行程列表</Typography>
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+        <Typography variant="h5">活動管理</Typography>
         <Button
           variant="contained"
-          color="primary"
           startIcon={<AddIcon />}
           onClick={() => navigate('/plans/new')}
         >
-          新增行程
+          新增活動
         </Button>
       </Box>
 
       {error && (
-        <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2 }}>
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
           {error}
         </Alert>
       )}
 
-      <Grid container spacing={3}>
-        {plans.map((plan) => (
-          <Grid item xs={12} sm={6} md={4} key={plan._id}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  {plan.title}
-                </Typography>
-                <Typography color="textSecondary" gutterBottom>
-                  {new Date(plan.startDate).toLocaleDateString()} - {new Date(plan.endDate).toLocaleDateString()}
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  {plan.description}
-                </Typography>
-                <Box mt={1}>
-                  <Chip
-                    label={plan.status}
-                    color={plan.status === 'active' ? 'success' : 'default'}
-                    size="small"
-                  />
-                </Box>
-              </CardContent>
-              <CardActions>
-                <IconButton
-                  size="small"
-                  onClick={() => navigate(`/plans/${plan._id}`)}
-                  title="查看"
-                >
-                  <VisibilityIcon />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={() => navigate(`/plans/${plan._id}/edit`)}
-                  title="編輯"
-                >
-                  <EditIcon />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={() => handleDelete(plan)}
-                  title="刪除"
-                  color="error"
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </CardActions>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={handleCloseDialog}
-      >
-        <DialogTitle>確認刪除</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            確定要刪除行程「{planToDelete?.title}」嗎？此操作無法撤銷。
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>取消</Button>
-          <Button onClick={confirmDelete} color="error" variant="contained">
-            刪除
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Container>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>活動名稱</TableCell>
+              <TableCell>開始日期</TableCell>
+              <TableCell>結束日期</TableCell>
+              <TableCell>狀態</TableCell>
+              <TableCell align="right">操作</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {Array.isArray(plans) && plans.length > 0 ? (
+              plans.map((plan) => (
+                <TableRow key={plan._id}>
+                  <TableCell>{plan.title}</TableCell>
+                  <TableCell>
+                    {new Date(plan.startDate).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(plan.endDate).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={plan.status}
+                      color={
+                        plan.status === '進行中' ? 'primary' :
+                        plan.status === '已完成' ? 'success' :
+                        'default'
+                      }
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell align="right">
+                    <IconButton
+                      size="small"
+                      onClick={() => navigate(`/plans/${plan._id}/itinerary`)}
+                      title="行程管理"
+                    >
+                      <CalendarIcon />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => navigate(`/plans/overview`)}
+                      title="行程總覽"
+                    >
+                      <ViewListIcon />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleDownloadPDF(plan._id)}
+                      title="下載 PDF"
+                    >
+                      <DownloadIcon />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => navigate(`/plans/${plan._id}/edit`)}
+                      title="編輯"
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={() => handleDelete(plan._id)}
+                      title="刪除"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} align="center">
+                  暫無活動資料
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
   );
 };
 
-export default PlanList;
+export default PlanList; 

@@ -32,8 +32,7 @@ import {
   Delete as DeleteIcon,
   Upload as UploadIcon,
 } from '@mui/icons-material';
-import planAPI from '../api/plan';
-import accommodationAPI from '../api/accommodation';
+import { accommodationApi, planApi } from '../services/api';
 
 const STATUS_MAP = {
   pending: { label: '待訂', color: 'default' },
@@ -75,7 +74,7 @@ const AccommodationList = () => {
     try {
       console.log('正在載入數據...');
       // 先載入活動列表
-      const activitiesRes = await planAPI.getAll();
+      const activitiesRes = await planApi.getAll();
       console.log('活動數據:', activitiesRes.data);
 
       if (!Array.isArray(activitiesRes.data)) {
@@ -90,7 +89,7 @@ const AccommodationList = () => {
 
       // 如果選擇了活動，才載入住宿數據
       if (selectedActivity) {
-        const accommodationsRes = await accommodationAPI.getByActivity(selectedActivity);
+        const accommodationsRes = await accommodationApi.getByActivity(selectedActivity);
         console.log('住宿數據:', accommodationsRes.data);
         setAccommodations(accommodationsRes.data || []);
       } else {
@@ -158,9 +157,9 @@ const AccommodationList = () => {
       };
 
       if (selectedAccommodation) {
-        await accommodationAPI.update(selectedAccommodation._id, submitData);
+        await accommodationApi.update(selectedAccommodation._id, submitData);
       } else {
-        await accommodationAPI.create(submitData);
+        await accommodationApi.create(submitData);
       }
       
       console.log('保存成功，重新載入數據');
@@ -176,7 +175,7 @@ const AccommodationList = () => {
     if (!window.confirm('確定要刪除此住宿資訊？')) return;
     
     try {
-      await accommodationAPI.delete(id);
+      await accommodationApi.delete(id);
       await loadData();
     } catch (error) {
       setError('刪除失敗');
@@ -234,7 +233,7 @@ const AccommodationList = () => {
         items: newItems
       });
 
-      await accommodationAPI.saveItems(selectedActivityForUpload, newItems);
+      await accommodationApi.saveItems(selectedActivityForUpload, newItems);
       await loadData();
       setUploadDialog(false);
       setSelectedFile(null);
@@ -259,7 +258,7 @@ const AccommodationList = () => {
   const handleStatusChange = async (id, currentStatus) => {
     try {
       const nextStatus = getNextStatus(currentStatus);
-      await accommodationAPI.patch(`/${id}/status`, { status: nextStatus });
+      await accommodationApi.patch(`/${id}/status`, { status: nextStatus });
       await loadData();
     } catch (error) {
       console.error('更新狀態失敗:', error);

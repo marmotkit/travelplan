@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const accommodationController = require('../controllers/accommodationController');
-const { auth, adminOnly } = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 
 router.use(auth);  // 所有路由都需要認證
 

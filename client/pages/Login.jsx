@@ -8,11 +8,10 @@ import {
   Typography,
   Alert
 } from '@mui/material';
-import { useAuth } from '../contexts/AuthContext';
+import { authApi } from '../services/authApi';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -31,14 +30,29 @@ const Login = () => {
     setError('');
     
     try {
-      const user = await login(formData);
-      if (user.role === 'admin') {
+      console.log('Submitting login form:', {
+        username: formData.username,
+        passwordLength: formData.password.length
+      });
+      
+      const response = await authApi.login(formData.username, formData.password);
+      console.log('Login successful:', {
+        role: response.user.role,
+        redirectTo: response.user.role === 'admin' ? '/users' : '/dashboard'
+      });
+      
+      if (response.user.role === 'admin') {
         navigate('/users');
       } else {
         navigate('/dashboard');
       }
     } catch (error) {
-      setError(error.response?.data?.message || '登入失敗，請檢查您的帳號密碼');
+      console.error('Login error:', {
+        status: error.response?.status,
+        message: error.response?.data?.message,
+        error: error.message
+      });
+      setError(error.response?.data?.message || '登入失敗');
     }
   };
 
@@ -58,13 +72,10 @@ const Login = () => {
           p: 4,
           width: '100%',
           maxWidth: 400,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2
         }}
       >
-        <Typography variant="h5" component="h1" gutterBottom align="center">
-          登入
+        <Typography variant="h5" component="h1" gutterBottom>
+          登入系統
         </Typography>
         
         {error && (
@@ -72,25 +83,25 @@ const Login = () => {
             {error}
           </Alert>
         )}
-
+        
         <form onSubmit={handleSubmit}>
           <TextField
             fullWidth
-            label="使用者名稱"
+            margin="normal"
+            label="用戶名"
             name="username"
             value={formData.username}
             onChange={handleChange}
-            margin="normal"
             required
           />
           <TextField
             fullWidth
+            margin="normal"
             label="密碼"
             name="password"
             type="password"
             value={formData.password}
             onChange={handleChange}
-            margin="normal"
             required
           />
           <Button

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import planAPI from '../api/plan';
+import { planApi } from '../services/api';
 import {
   Box,
   TextField,
@@ -38,7 +38,7 @@ export default function PlanForm() {
 
   const fetchPlan = async () => {
     try {
-      const data = await planAPI.get(id);
+      const data = await planApi.get(id);
       setFormData({
         ...data,
         startDate: new Date(data.startDate),
@@ -74,9 +74,9 @@ export default function PlanForm() {
     };
     try {
       if (id) {
-        await planAPI.update(id, formattedData);
+        await planApi.update(id, formattedData);
       } else {
-        await planAPI.create(formattedData);
+        await planApi.create(formattedData);
       }
       navigate('/plans');
     } catch (error) {

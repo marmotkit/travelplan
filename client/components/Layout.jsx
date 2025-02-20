@@ -16,112 +16,111 @@ import {
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
-  Event as EventIcon,
   ListAlt as ListAltIcon,
   Hotel as HotelIcon,
   AttachMoney as AttachMoneyIcon,
   People as PeopleIcon,
-  Logout as LogoutIcon,
-  ViewList as ViewListIcon
 } from '@mui/icons-material';
-import { useAuth } from '../contexts/AuthContext';
-import Footer from './Footer';
 
 const drawerWidth = 240;
 
+// 創建一個默認的用戶
+const defaultUser = {
+  username: 'marmot',
+  name: '梁坤棠',
+  role: 'admin'
+};
+
 export default function Layout() {
-  const outlet = useOutlet();  
+  const outlet = useOutlet();
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
-  const isAdmin = user?.role === 'admin';
-  
-  const adminMenuItems = [
-    { text: '用戶管理', icon: <PeopleIcon />, path: '/users' }
-  ];
-  
-  const userMenuItems = [
+
+  const menuItems = [
     { text: '儀表板', icon: <DashboardIcon />, path: '/dashboard' },
-    { text: '活動管理', icon: <EventIcon />, path: '/activities' },
     { text: '行程計劃', icon: <ListAltIcon />, path: '/plans' },
-    { text: '行程總覽', icon: <ViewListIcon />, path: '/plans/overview' },
     { text: '住宿管理', icon: <HotelIcon />, path: '/accommodations' },
     { text: '預算管理', icon: <AttachMoneyIcon />, path: '/budgets' }
   ];
 
-  const menuItems = isAdmin ? adminMenuItems : userMenuItems;
+  // 如果是管理員，添加用戶管理選項
+  if (defaultUser.role === 'admin') {
+    menuItems.push({ text: '用戶管理', icon: <PeopleIcon />, path: '/users' });
+  }
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
   };
 
   const handleMenuClick = (path) => {
     console.log('點擊菜單項:', path);
-    console.log('當前用戶角色:', isAdmin ? 'admin' : 'user');
+    console.log('當前用戶角色:', defaultUser.role);
     navigate(path);
+    setMobileOpen(false);
   };
 
   const drawer = (
     <div>
-      <Toolbar>
-        <Typography variant="h6" noWrap>
-          {isAdmin ? '管理員後台' : '旅遊行程管理'}
-        </Typography>
-      </Toolbar>
-      <Divider />
+      <Toolbar />
       <List>
         {menuItems.map((item) => (
-          <ListItem 
-            button 
-            key={item.text} 
+          <ListItem
+            button
+            key={item.text}
             onClick={() => handleMenuClick(item.path)}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>
             <ListItemText primary={item.text} />
           </ListItem>
         ))}
-        <ListItem button onClick={handleLogout}>
-          <ListItemIcon><LogoutIcon /></ListItemIcon>
-          <ListItemText primary="登出" />
-        </ListItem>
       </List>
     </div>
   );
 
   return (
     <Box sx={{ display: 'flex' }}>
-      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+      <AppBar
+        position="fixed"
+        sx={{
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          ml: { sm: `${drawerWidth}px` },
+        }}
+      >
         <Toolbar>
           <IconButton
             color="inherit"
+            aria-label="open drawer"
             edge="start"
-            onClick={() => setMobileOpen(!mobileOpen)}
+            onClick={handleDrawerToggle}
             sx={{ mr: 2, display: { sm: 'none' } }}
           >
             <MenuIcon />
           </IconButton>
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            width: '100%'
-          }}>
-            <Typography variant="h6" noWrap component="div">
-              {isAdmin ? '旅遊行程管理系統 - 管理員' : '旅遊行程管理系統'}
-            </Typography>
-          </Box>
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+            旅遊計劃系統
+          </Typography>
+          <Typography variant="subtitle1" sx={{ mr: 2 }}>
+            {defaultUser.name}
+          </Typography>
         </Toolbar>
       </AppBar>
-      <Box component="nav" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
+      <Box
+        component="nav"
+        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+      >
         <Drawer
           variant="temporary"
           open={mobileOpen}
-          onClose={() => setMobileOpen(false)}
-          ModalProps={{ keepMounted: true }}
+          onClose={handleDrawerToggle}
+          ModalProps={{
+            keepMounted: true,
+          }}
           sx={{
             display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
+              width: drawerWidth,
+            },
           }}
         >
           {drawer}
@@ -130,7 +129,10 @@ export default function Layout() {
           variant="permanent"
           sx={{
             display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
+              width: drawerWidth,
+            },
           }}
           open
         >
@@ -143,13 +145,11 @@ export default function Layout() {
           flexGrow: 1,
           p: 3,
           width: { sm: `calc(100% - ${drawerWidth}px)` },
-          marginTop: '64px',
         }}
       >
         <Toolbar />
-        {outlet}  
-        <Footer />
+        {outlet}
       </Box>
     </Box>
   );
-} 
+}

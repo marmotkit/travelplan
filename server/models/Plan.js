@@ -1,11 +1,6 @@
 const mongoose = require('mongoose');
 
 const planSchema = new mongoose.Schema({
-  activityId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Activity',
-    required: true
-  },
   title: {
     type: String,
     required: true,
@@ -13,15 +8,11 @@ const planSchema = new mongoose.Schema({
   },
   startDate: {
     type: Date,
-    required: true,
-    get: v => v ? v.toISOString().split('T')[0] : null,
-    set: v => v ? new Date(v + 'T00:00:00.000Z') : null
+    required: true
   },
   endDate: {
     type: Date,
-    required: true,
-    get: v => v ? v.toISOString().split('T')[0] : null,
-    set: v => v ? new Date(v + 'T00:00:00.000Z') : null
+    required: true
   },
   status: {
     type: String,
@@ -32,21 +23,21 @@ const planSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
+  location: {
+    type: String,
+    trim: true
   },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  }
+  budget: {
+    type: Number,
+    default: 0
+  },
+  participants: [{
+    type: String,
+    trim: true
+  }]
 }, {
-  timestamps: true
+  timestamps: true,
+  collection: 'plans'  // 指定集合名稱
 });
 
-planSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
-
-module.exports = mongoose.model('Plan', planSchema); 
+module.exports = mongoose.model('Plan', planSchema);

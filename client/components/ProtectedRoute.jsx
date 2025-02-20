@@ -1,19 +1,26 @@
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useEffect } from 'react';
+import { authApi } from '../services/authApi';
 
-export const ProtectedRoute = ({ children, requireAdmin = false }) => {
+export const ProtectedRoute = ({ children, adminOnly = false }) => {
   const location = useLocation();
-  const { user, loading } = useAuth();
+  const isAuthenticated = authApi.isAuthenticated();
+  const isAdmin = authApi.isAdmin();
 
-  if (loading) {
-    return <div>載入中...</div>;
-  }
+  useEffect(() => {
+    // 檢查 token 是否有效
+    if (!isAuthenticated) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
+  }, [isAuthenticated]);
 
-  if (!user) {
+  if (!isAuthenticated) {
+    // 保存嘗試訪問的 URL
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (requireAdmin && user.role !== 'admin') {
+  if (adminOnly && !isAdmin) {
     return <Navigate to="/dashboard" replace />;
   }
 

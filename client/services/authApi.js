@@ -1,5 +1,5 @@
 import axios from 'axios';
-import api from './api';
+import { api } from './api';
 
 // 設置 axios 攔截器來處理認證
 api.interceptors.request.use(
@@ -18,13 +18,26 @@ api.interceptors.request.use(
 export const authApi = {
   login: async (username, password) => {
     try {
-      console.log('Attempting login for:', username);
-      const response = await api.post('/api/users/login', {
+      console.log('Sending login request:', {
+        url: '/users/login',
+        username,
+        passwordLength: password.length
+      });
+
+      const response = await api.post('/users/login', {
         username,
         password
       });
       
-      console.log('Login response:', response.data);
+      console.log('Login response:', {
+        success: true,
+        hasToken: !!response.data.token,
+        user: {
+          username: response.data.user.username,
+          role: response.data.user.role
+        }
+      });
+
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
@@ -32,10 +45,10 @@ export const authApi = {
       
       return response.data;
     } catch (error) {
-      console.error('Login error:', {
-        message: error.response?.data?.message || error.message,
+      console.error('Login request failed:', {
         status: error.response?.status,
-        data: error.response?.data
+        message: error.response?.data?.message,
+        error: error.message
       });
       throw error;
     }
@@ -44,15 +57,23 @@ export const authApi = {
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    window.location.href = '/login';
   },
 
   getCurrentUser: () => {
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
+    try {
+      const userStr = localStorage.getItem('user');
+      return userStr ? JSON.parse(userStr) : null;
+    } catch (error) {
+      console.error('Error getting current user:', error);
+      return null;
+    }
   },
 
   isAuthenticated: () => {
-    return !!localStorage.getItem('token');
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    return !!(token && user);
   },
 
   isAdmin: () => {
