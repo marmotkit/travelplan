@@ -9,8 +9,8 @@ const config = require('./config/config');
 dotenv.config();
 
 // 直接使用環境變數
-const port = process.env.PORT || 5001;
-const mongoUri = config.db.uri;
+const port = config.port || 5001;
+const mongoUri = config.mongoUri;
 const nodeEnv = process.env.NODE_ENV || 'development';
 
 console.log('Starting server with configuration:', {
@@ -72,20 +72,18 @@ mongoose.connect(mongoUri, {
   useUnifiedTopology: true
 })
 .then(() => {
-  console.log('Successfully connected to MongoDB');
+  console.log('成功連接到 MongoDB');
 })
-.catch((error) => {
-  console.error('MongoDB connection error:', error);
+.catch((err) => {
+  console.error('MongoDB 連接失敗:', err);
   process.exit(1);
 });
 
 // 啟動服務器
-const server = app.listen(port, () => {
-  console.log('Server started:', {
-    port: port,
-    environment: nodeEnv,
-    timestamp: new Date().toISOString()
-  });
+app.listen(port, () => {
+  console.log(`服務器運行在端口 ${port}`);
+  console.log('環境:', process.env.NODE_ENV);
+  console.log('CORS 來源:', config.corsOrigin);
 
   // 列出所有註冊的路由
   const routes = [];
@@ -121,7 +119,7 @@ const gracefulShutdown = () => {
     timestamp: new Date().toISOString()
   });
 
-  server.close(() => {
+  app.close(() => {
     console.log('HTTP server closed:', {
       timestamp: new Date().toISOString()
     });
