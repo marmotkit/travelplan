@@ -81,13 +81,26 @@ const apiRouter = express.Router();
 // 為所有 API 路由設置 CORS 和內容類型
 apiRouter.use(corsMiddleware);
 apiRouter.use((req, res, next) => {
-  // 強制設置 JSON 內容類型
-  res.contentType('application/json');
+  // 在請求開始時設置響應頭
+  res.set({
+    'Content-Type': 'application/json; charset=utf-8',
+    'X-Content-Type-Options': 'nosniff'
+  });
   
-  // 移除任何可能導致內容類型改變的頭部
-  res.removeHeader('Content-Type');
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  
+  // 攔截 send 方法
+  const originalSend = res.send;
+  res.send = function(body) {
+    // 確保響應是 JSON 格式
+    if (body && typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        body = { data: body };
+      }
+    }
+    return originalSend.call(this, JSON.stringify(body));
+  };
+
   next();
 });
 

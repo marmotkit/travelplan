@@ -18,14 +18,19 @@ const logResponse = (req, res, next) => {
 exports.createPlan = async (req, res) => {
   try {
     const plan = new Plan(req.body);
-    await plan.save();
-    res.status(201)
-       .type('application/json')
-       .json(plan);
+    const savedPlan = await plan.save();
+    console.log('Response:', {
+      statusCode: 201,
+      contentType: res.get('Content-Type'),
+      planId: savedPlan._id
+    });
+    res.status(201).json(savedPlan);
   } catch (error) {
-    res.status(400)
-       .type('application/json')
-       .json({ message: error.message });
+    console.error('Error in createPlan:', error);
+    res.status(400).json({ 
+      error: 'Bad Request',
+      message: error.message 
+    });
   }
 };
 
@@ -33,14 +38,18 @@ exports.getPlans = async (req, res) => {
   try {
     console.log('Getting plans...');
     const plans = await Plan.find().sort({ createdAt: -1 });
-    console.log('Plans found:', plans);
-    res.type('application/json')
-       .json(plans);
+    console.log('Response:', {
+      statusCode: 200,
+      contentType: res.get('Content-Type'),
+      dataLength: plans.length
+    });
+    res.status(200).json(plans);
   } catch (error) {
-    console.error('Error getting plans:', error);
-    res.status(500)
-       .type('application/json')
-       .json({ message: error.message });
+    console.error('Error in getPlans:', error);
+    res.status(500).json({ 
+      error: 'Internal Server Error',
+      message: error.message 
+    });
   }
 };
 
@@ -48,16 +57,26 @@ exports.getPlan = async (req, res) => {
   try {
     const plan = await Plan.findById(req.params.id);
     if (!plan) {
-      return res.status(404)
-                .type('application/json')
-                .json({ message: '找不到該行程' });
+      console.log('Response:', {
+        statusCode: 404,
+        contentType: res.get('Content-Type')
+      });
+      return res.status(404).json({ 
+        error: 'Not Found',
+        message: '找不到該行程' 
+      });
     }
-    res.type('application/json')
-       .json(plan);
+    console.log('Response:', {
+      statusCode: 200,
+      contentType: res.get('Content-Type')
+    });
+    res.status(200).json(plan);
   } catch (error) {
-    res.status(500)
-       .type('application/json')
-       .json({ message: error.message });
+    console.error('Error in getPlan:', error);
+    res.status(500).json({ 
+      error: 'Internal Server Error',
+      message: error.message 
+    });
   }
 };
 
@@ -71,19 +90,27 @@ exports.updatePlan = async (req, res) => {
       updateData,
       { new: true, runValidators: true }
     );
-    console.log('Updated plan:', plan);
     if (!plan) {
-      return res.status(404)
-                .type('application/json')
-                .json({ message: '找不到該行程' });
+      console.log('Response:', {
+        statusCode: 404,
+        contentType: res.get('Content-Type')
+      });
+      return res.status(404).json({ 
+        error: 'Not Found',
+        message: '找不到該行程' 
+      });
     }
-    res.type('application/json')
-       .json(plan);
+    console.log('Response:', {
+      statusCode: 200,
+      contentType: res.get('Content-Type')
+    });
+    res.status(200).json(plan);
   } catch (error) {
     console.error('Update error:', error);
-    res.status(400)
-       .type('application/json')
-       .json({ message: error.message });
+    res.status(400).json({ 
+      error: 'Bad Request',
+      message: error.message 
+    });
   }
 };
 
@@ -91,16 +118,26 @@ exports.deletePlan = async (req, res) => {
   try {
     const plan = await Plan.findByIdAndDelete(req.params.id);
     if (!plan) {
-      return res.status(404)
-                .type('application/json')
-                .json({ message: '找不到該行程' });
+      console.log('Response:', {
+        statusCode: 404,
+        contentType: res.get('Content-Type')
+      });
+      return res.status(404).json({ 
+        error: 'Not Found',
+        message: '找不到該行程' 
+      });
     }
-    res.type('application/json')
-       .json({ message: '行程已刪除' });
+    console.log('Response:', {
+      statusCode: 200,
+      contentType: res.get('Content-Type')
+    });
+    res.status(200).json({ message: '行程已刪除' });
   } catch (error) {
-    res.status(500)
-       .type('application/json')
-       .json({ message: error.message });
+    console.error('Error in deletePlan:', error);
+    res.status(500).json({ 
+      error: 'Internal Server Error',
+      message: error.message 
+    });
   }
 };
 
@@ -118,9 +155,14 @@ exports.downloadPDF = async (req, res) => {
     ]);
 
     if (!plan) {
-      return res.status(404)
-                .type('application/json')
-                .json({ message: '找不到該活動' });
+      console.log('Response:', {
+        statusCode: 404,
+        contentType: res.get('Content-Type')
+      });
+      return res.status(404).json({ 
+        error: 'Not Found',
+        message: '找不到該活動' 
+      });
     }
 
     // 將所有數據打包成一個對象
@@ -132,14 +174,18 @@ exports.downloadPDF = async (req, res) => {
       travelInfo
     };
 
+    console.log('Response:', {
+      statusCode: 200,
+      contentType: res.get('Content-Type')
+    });
     // 返回數據給前端
-    res.type('application/json')
-       .json(data);
+    res.status(200).json(data);
 
   } catch (error) {
     console.error('Error in downloadPDF:', error);
-    res.status(500)
-       .type('application/json')
-       .json({ message: '獲取 PDF 數據失敗' });
+    res.status(500).json({ 
+      error: 'Internal Server Error',
+      message: '獲取 PDF 數據失敗' 
+    });
   }
 };
