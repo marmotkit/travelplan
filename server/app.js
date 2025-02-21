@@ -17,15 +17,13 @@ const config = require('./config/config');
 const app = express();
 
 // CORS 配置
-const corsOptions = {
-  origin: config.corsOrigin,
+app.use(cors({
+  origin: 'https://travel-planner-web.onrender.com',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  maxAge: 86400 // 預檢請求的結果可以快取 24 小時
-};
-
-app.use(cors(corsOptions));
+  maxAge: 86400
+}));
 
 // 其他中間件
 app.use(express.json());
