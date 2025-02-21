@@ -44,7 +44,6 @@ yarn-error.log*
 .env.production.local
 
 # Server specific
-server/config/config.js
 
 # Client specific
 client/.env
