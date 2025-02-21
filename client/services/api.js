@@ -63,26 +63,26 @@ export const planAPI = {
 
 // 行程項目相關 API
 export const tripItemAPI = {
-  getTripItems: (planId) => api.get(`/trip-items?planId=${planId}`),
-  createTripItem: (data) => api.post('/trip-items', data),
-  updateTripItem: (id, data) => api.put(`/trip-items/${id}`, data),
-  deleteTripItem: (id) => api.delete(`/trip-items/${id}`)
+  getTripItems: (planId) => api.get(`/api/trip-items?planId=${planId}`),
+  createTripItem: (data) => api.post('/api/trip-items', data),
+  updateTripItem: (id, data) => api.put(`/api/trip-items/${id}`, data),
+  deleteTripItem: (id) => api.delete(`/api/trip-items/${id}`)
 };
 
 // 住宿相關 API
 export const accommodationAPI = {
-  getAccommodations: (planId) => api.get(`/accommodations?planId=${planId}`),
-  createAccommodation: (data) => api.post('/accommodations', data),
-  updateAccommodation: (id, data) => api.put(`/accommodations/${id}`, data),
-  deleteAccommodation: (id) => api.delete(`/accommodations/${id}`)
+  getAccommodations: (planId) => api.get(`/api/accommodations?planId=${planId}`),
+  createAccommodation: (data) => api.post('/api/accommodations', data),
+  updateAccommodation: (id, data) => api.put(`/api/accommodations/${id}`, data),
+  deleteAccommodation: (id) => api.delete(`/api/accommodations/${id}`)
 };
 
 // 預算相關 API
 export const budgetAPI = {
-  getBudgets: (planId) => api.get(`/budgets?planId=${planId}`),
-  createBudget: (data) => api.post('/budgets', data),
-  updateBudget: (id, data) => api.put(`/budgets/${id}`, data),
-  deleteBudget: (id) => api.delete(`/budgets/${id}`)
+  getBudgets: (planId) => api.get(`/api/budgets?planId=${planId}`),
+  createBudget: (data) => api.post('/api/budgets', data),
+  updateBudget: (id, data) => api.put(`/api/budgets/${id}`, data),
+  deleteBudget: (id) => api.delete(`/api/budgets/${id}`)
 };
 
 // 儀表板相關 API
@@ -93,16 +93,16 @@ export const dashboardAPI = {
 
 // 旅行資訊相關 API
 export const travelInfoAPI = {
-  getWeather: (location) => api.get(`/travel-info/weather?location=${location}`),
-  getCurrency: (from, to) => api.get(`/travel-info/currency?from=${from}&to=${to}`),
-  getAttractions: (location) => api.get(`/travel-info/attractions?location=${location}`)
+  getWeather: (location) => api.get(`/api/travel-info/weather?location=${location}`),
+  getCurrency: (from, to) => api.get(`/api/travel-info/currency?from=${from}&to=${to}`),
+  getAttractions: (location) => api.get(`/api/travel-info/attractions?location=${location}`)
 };
 
 // 用戶相關 API
 export const userAPI = {
-  getUsers: () => api.get('/users'),
-  getUser: (id) => api.get(`/users/${id}`),
-  createUser: (data) => api.post('/users', data),
-  updateUser: (id, data) => api.put(`/users/${id}`, data),
-  deleteUser: (id) => api.delete(`/users/${id}`)
+  getUsers: () => api.get('/api/users'),
+  getUser: (id) => api.get(`/api/users/${id}`),
+  createUser: (data) => api.post('/api/users', data),
+  updateUser: (id, data) => api.put(`/api/users/${id}`, data),
+  deleteUser: (id) => api.delete(`/api/users/${id}`)
 };

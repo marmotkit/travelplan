@@ -16,28 +16,10 @@ const config = require('./config/config');
 
 const app = express();
 
-// 在所有路由之前配置 CORS
-app.use((req, res, next) => {
-  // 允許特定來源
-  const allowedOrigins = ['https://travel-planner-web.onrender.com', 'http://localhost:5173'];
-  const origin = req.headers.origin;
-  
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-  }
+// 最簡單的 CORS 配置
+app.use(cors());
 
-  // 處理 OPTIONS 請求
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-
-  next();
-});
-
-// 移除其他 CORS 相關配置
+// 其他中間件
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
