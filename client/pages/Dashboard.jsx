@@ -2,27 +2,16 @@ import React, { useState, useEffect } from 'react';
 import {
   Container,
   Grid,
-  Paper,
   Typography,
   Box,
   Card,
   CardContent,
-  CardActions,
-  Button,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
   CircularProgress,
   Alert
 } from '@mui/material';
-import { Edit as EditIcon } from '@mui/icons-material';
-import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -33,14 +22,6 @@ const Dashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [profileData, setProfileData] = useState({
-    username: '',
-    email: '',
-    preferences: ''
-  });
-
-  const { user } = useAuth();
 
   useEffect(() => {
     fetchDashboardData();
@@ -59,39 +40,6 @@ const Dashboard = () => {
     }
   };
 
-  const handleEditProfile = () => {
-    setProfileData({
-      username: user.username,
-      email: user.email,
-      preferences: user.preferences || ''
-    });
-    setOpenDialog(true);
-  };
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-  };
-
-  const handleSaveProfile = async () => {
-    try {
-      await api.put(`${API_URL}/users/profile`, profileData);
-      handleCloseDialog();
-      // 重新獲取用戶數據
-      fetchDashboardData();
-    } catch (err) {
-      console.error('更新個人資料失敗:', err);
-      setError('更新個人資料失敗');
-    }
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setProfileData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
@@ -107,11 +55,8 @@ const Dashboard = () => {
           <Grid item xs={12}>
             <Box display="flex" justifyContent="space-between" alignItems="center">
               <Typography variant="h4">
-                歡迎回來，{user?.username}
+                儀表板
               </Typography>
-              <IconButton onClick={handleEditProfile} color="primary">
-                <EditIcon />
-              </IconButton>
             </Box>
           </Grid>
 
@@ -176,46 +121,6 @@ const Dashboard = () => {
           </Grid>
         </Grid>
       </Box>
-
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>編輯個人資料</DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            margin="normal"
-            label="用戶名"
-            name="username"
-            value={profileData.username}
-            onChange={handleInputChange}
-          />
-          <TextField
-            fullWidth
-            margin="normal"
-            label="郵箱"
-            name="email"
-            type="email"
-            value={profileData.email}
-            onChange={handleInputChange}
-          />
-          <TextField
-            fullWidth
-            margin="normal"
-            label="偏好設置"
-            name="preferences"
-            multiline
-            rows={4}
-            value={profileData.preferences}
-            onChange={handleInputChange}
-            placeholder="輸入您的旅行偏好，例如：喜歡的住宿類型、飲食習慣等"
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>取消</Button>
-          <Button onClick={handleSaveProfile} variant="contained" color="primary">
-            保存
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Container>
   );
 };
