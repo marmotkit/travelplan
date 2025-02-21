@@ -1,21 +1,18 @@
 const config = {
     // 資料庫配置
     db: {
-        host: 'localhost',
-        port: 27017,
-        database: 'travel_plan',
-        uri: 'mongodb+srv://marmotkk2013:Kingmax00@marmotkit.dlnje.mongodb.net/travel_planner?retryWrites=true&w=majority&appName=marmotkit'
+        uri: process.env.MONGODB_URI || 'mongodb+srv://marmotkk2013:Kingmax00@marmotkit.dlnje.mongodb.net/travel_planner?retryWrites=true&w=majority&appName=marmotkit'
     },
     
     // 服務器配置
     server: {
-        port: 3000,
+        port: process.env.PORT || 3000,
         baseUrl: '/api'
     },
 
     // JWT 配置
     jwt: {
-        secret: 'your-secret-key',
+        secret: process.env.JWT_SECRET || 'your-secret-key',
         expiresIn: '24h'
     }
 };
