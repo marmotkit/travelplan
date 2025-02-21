@@ -18,13 +18,7 @@ const app = express();
 app.use(express.json());
 app.use(morgan('dev'));
 
-// 通用錯誤處理中間件
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Internal Server Error' });
-});
-
-// CORS 中間件
+// CORS 中間件 - 必須在所有路由之前
 app.use((req, res, next) => {
   // 設置允許的來源
   const origin = req.headers.origin;
@@ -38,14 +32,18 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Max-Age', '86400');
 
-  // 確保 JSON 響應
-  res.setHeader('Content-Type', 'application/json');
-
   // 處理預檢請求
   if (req.method === 'OPTIONS') {
-    return res.status(204).end();
+    res.status(204).end();
+    return;
   }
 
+  next();
+});
+
+// API 路由中間件 - 設置 JSON 內容類型
+app.use('/api', (req, res, next) => {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
   next();
 });
 
@@ -86,6 +84,14 @@ app.get('/health', (req, res) => {
 // 404 處理
 app.use((req, res) => {
   res.status(404).json({ error: 'Not Found' });
+});
+
+// 錯誤處理中間件 - 必須在所有路由之後
+app.use((err, req, res, next) => {
+  console.error('錯誤:', err);
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal Server Error'
+  });
 });
 
 // 根路由
