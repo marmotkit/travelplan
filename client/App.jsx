@@ -15,7 +15,7 @@ import Login from './pages/Login';
 import UserManagement from './pages/UserManagement';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider } from './contexts/AuthContext';
-import ActivityList from './pages/ActivityList';
+import PlanList from './pages/PlanList';
 
 const theme = createTheme({
   palette: {
@@ -52,7 +52,7 @@ function App() {
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="users" element={<UserManagement />} />
                     <Route path="plans/*" element={<PlanRoutes />} />
-                    <Route path="activities" element={<ActivityList />} />
+                    <Route path="activities" element={<PlanList />} />
                     <Route path="accommodations" element={<AccommodationList />} />
                     <Route path="budgets" element={<BudgetList />} />
                   </Route>
