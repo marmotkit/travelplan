@@ -28,7 +28,6 @@ import {
 import planAPI from '../api/plan';
 import tripItemAPI from '../api/tripItem';
 import accommodationAPI from '../api/accommodation';
-import { useAuth } from '../contexts/AuthContext';
 
 const PlanList = () => {
   const [plans, setPlans] = useState([]);
@@ -38,7 +37,6 @@ const PlanList = () => {
   const [planToDelete, setPlanToDelete] = useState(null);
   
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   useEffect(() => {
     fetchPlans();

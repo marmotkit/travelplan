@@ -22,7 +22,7 @@ import {
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+// import { useAuth } from '../contexts/AuthContext';
 import userAPI from '../api/user';
 
 const UserManagement = () => {
@@ -37,7 +37,6 @@ const UserManagement = () => {
     role: ''
   });
 
-  const { user: currentUser } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -122,16 +121,6 @@ const UserManagement = () => {
       setError(err.message);
     }
   };
-
-  if (!currentUser || currentUser.role !== 'admin') {
-    return (
-      <Container>
-        <Typography variant="h5" color="error">
-          訪問被拒絕：需要管理員權限
-        </Typography>
-      </Container>
-    );
-  }
 
   if (loading) {
     return (

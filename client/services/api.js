@@ -9,42 +9,22 @@ function generateRequestId() {
   });
 }
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://travelplan.onrender.com/api';
-
-// 創建 axios 實例
 const api = axios.create({
-  baseURL: BASE_URL,
-  timeout: 10000,
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
   headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  },
-  withCredentials: true // 允許跨域請求攜帶 cookies
+    'Content-Type': 'application/json'
+  }
 });
 
 // 請求攔截器
 api.interceptors.request.use(
   (config) => {
-    // 添加請求 ID
-    config.headers['X-Request-ID'] = generateRequestId();
-
-    // 從 localStorage 獲取 token
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
     console.log('API 請求:', {
       method: config.method,
       url: config.url,
       baseURL: config.baseURL,
-      headers: {
-        'Content-Type': config.headers['Content-Type'],
-        'X-Request-ID': config.headers['X-Request-ID']
-      },
       data: config.data
     });
-
     return config;
   },
   (error) => {
@@ -58,74 +38,17 @@ api.interceptors.response.use(
   (response) => {
     console.log('API 響應:', {
       status: response.status,
-      data: response.data,
-      headers: response.headers
+      data: response.data
     });
     return response.data;
   },
   (error) => {
-    if (error.response) {
-      // 處理 401 未授權錯誤
-      if (error.response.status === 401) {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
-      }
-      // 處理其他錯誤
-      const message = error.response.data?.message || '發生錯誤，請稍後再試';
-      console.error('API Error:', message);
-    }
-    console.error('API 響應錯誤:', {
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message,
-      config: {
-        method: error.config?.method,
-        url: error.config?.url,
-        baseURL: error.config?.baseURL
-      }
-    });
+    console.error('API 響應錯誤:', error);
     return Promise.reject(error);
   }
 );
 
 export default api;
-
-// API 服務
-export const userAPI = {
-  getCurrentUser: () => {
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
-  },
-
-  login: async (username, password) => {
-    console.log('嘗試登入:', { username });
-    try {
-      const response = await api.post('/api/users/login', {
-        username,
-        password
-      });
-      
-      console.log('登入響應:', response);
-      
-      if (response.success && response.token) {
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user));
-      }
-      return response;
-    } catch (error) {
-      console.error('登入錯誤:', {
-        status: error.response?.status,
-        message: error.response?.data?.message || error.message
-      });
-      throw error;
-    }
-  },
-
-  logout: () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-  }
-};
 
 // 旅行計劃相關 API
 export const planAPI = {
@@ -171,4 +94,13 @@ export const travelInfoAPI = {
   getWeather: (location) => api.get(`/api/travel-info/weather?location=${location}`),
   getCurrency: (from, to) => api.get(`/api/travel-info/currency?from=${from}&to=${to}`),
   getAttractions: (location) => api.get(`/api/travel-info/attractions?location=${location}`)
+};
+
+// 用戶相關 API
+export const userAPI = {
+  getUsers: () => api.get('/api/users'),
+  getUser: (id) => api.get(`/api/users/${id}`),
+  createUser: (data) => api.post('/api/users', data),
+  updateUser: (id, data) => api.put(`/api/users/${id}`, data),
+  deleteUser: (id) => api.delete(`/api/users/${id}`)
 };
