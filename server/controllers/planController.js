@@ -4,22 +4,43 @@ const Accommodation = require('../models/Accommodation');
 const Budget = require('../models/Budget');
 const TravelInfo = require('../models/TravelInfo');
 
+// 添加調試日誌
+const logResponse = (req, res, next) => {
+  const oldJson = res.json;
+  res.json = function(data) {
+    console.log('Response headers:', res.getHeaders());
+    console.log('Response data:', data);
+    return oldJson.apply(res, arguments);
+  };
+  next();
+};
+
 exports.createPlan = async (req, res) => {
   try {
     const plan = new Plan(req.body);
     await plan.save();
-    res.status(201).json(plan);
+    res.status(201)
+       .type('application/json')
+       .json(plan);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400)
+       .type('application/json')
+       .json({ message: error.message });
   }
 };
 
 exports.getPlans = async (req, res) => {
   try {
+    console.log('Getting plans...');
     const plans = await Plan.find().sort({ createdAt: -1 });
-    res.json(plans);
+    console.log('Plans found:', plans);
+    res.type('application/json')
+       .json(plans);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error getting plans:', error);
+    res.status(500)
+       .type('application/json')
+       .json({ message: error.message });
   }
 };
 
@@ -27,11 +48,16 @@ exports.getPlan = async (req, res) => {
   try {
     const plan = await Plan.findById(req.params.id);
     if (!plan) {
-      return res.status(404).json({ message: '找不到該行程' });
+      return res.status(404)
+                .type('application/json')
+                .json({ message: '找不到該行程' });
     }
-    res.json(plan);
+    res.type('application/json')
+       .json(plan);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500)
+       .type('application/json')
+       .json({ message: error.message });
   }
 };
 
@@ -47,12 +73,17 @@ exports.updatePlan = async (req, res) => {
     );
     console.log('Updated plan:', plan);
     if (!plan) {
-      return res.status(404).json({ message: '找不到該行程' });
+      return res.status(404)
+                .type('application/json')
+                .json({ message: '找不到該行程' });
     }
-    res.json(plan);
+    res.type('application/json')
+       .json(plan);
   } catch (error) {
     console.error('Update error:', error);
-    res.status(400).json({ message: error.message });
+    res.status(400)
+       .type('application/json')
+       .json({ message: error.message });
   }
 };
 
@@ -60,11 +91,16 @@ exports.deletePlan = async (req, res) => {
   try {
     const plan = await Plan.findByIdAndDelete(req.params.id);
     if (!plan) {
-      return res.status(404).json({ message: '找不到該行程' });
+      return res.status(404)
+                .type('application/json')
+                .json({ message: '找不到該行程' });
     }
-    res.json({ message: '行程已刪除' });
+    res.type('application/json')
+       .json({ message: '行程已刪除' });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500)
+       .type('application/json')
+       .json({ message: error.message });
   }
 };
 
@@ -82,7 +118,9 @@ exports.downloadPDF = async (req, res) => {
     ]);
 
     if (!plan) {
-      return res.status(404).json({ message: '找不到該活動' });
+      return res.status(404)
+                .type('application/json')
+                .json({ message: '找不到該活動' });
     }
 
     // 將所有數據打包成一個對象
@@ -95,10 +133,13 @@ exports.downloadPDF = async (req, res) => {
     };
 
     // 返回數據給前端
-    res.json(data);
+    res.type('application/json')
+       .json(data);
 
   } catch (error) {
     console.error('Error in downloadPDF:', error);
-    res.status(500).json({ message: '獲取 PDF 數據失敗' });
+    res.status(500)
+       .type('application/json')
+       .json({ message: '獲取 PDF 數據失敗' });
   }
-}; 
+};
