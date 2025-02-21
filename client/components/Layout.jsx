@@ -21,52 +21,36 @@ import {
   Hotel as HotelIcon,
   AttachMoney as AttachMoneyIcon,
   People as PeopleIcon,
-  Logout as LogoutIcon,
   ViewList as ViewListIcon
 } from '@mui/icons-material';
-import { useAuth } from '../contexts/AuthContext';
-import Footer from './Footer';
 
 const drawerWidth = 240;
 
 export default function Layout() {
-  const outlet = useOutlet();  
+  const outlet = useOutlet();
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
-  const isAdmin = user?.role === 'admin';
-  
-  const adminMenuItems = [
-    { text: '用戶管理', icon: <PeopleIcon />, path: '/users' }
-  ];
-  
-  const userMenuItems = [
+
+  const menuItems = [
     { text: '儀表板', icon: <DashboardIcon />, path: '/dashboard' },
     { text: '活動管理', icon: <EventIcon />, path: '/activities' },
     { text: '行程計劃', icon: <ListAltIcon />, path: '/plans' },
     { text: '行程總覽', icon: <ViewListIcon />, path: '/plans/overview' },
     { text: '住宿管理', icon: <HotelIcon />, path: '/accommodations' },
-    { text: '預算管理', icon: <AttachMoneyIcon />, path: '/budgets' }
+    { text: '預算管理', icon: <AttachMoneyIcon />, path: '/budgets' },
+    { text: '用戶管理', icon: <PeopleIcon />, path: '/users' }
   ];
 
-  const menuItems = isAdmin ? adminMenuItems : userMenuItems;
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
   const handleMenuClick = (path) => {
-    console.log('點擊菜單項:', path);
-    console.log('當前用戶角色:', isAdmin ? 'admin' : 'user');
     navigate(path);
+    setMobileOpen(false);
   };
 
   const drawer = (
     <div>
       <Toolbar>
         <Typography variant="h6" noWrap>
-          {isAdmin ? '管理員後台' : '旅遊行程管理'}
+          旅遊行程管理
         </Typography>
       </Toolbar>
       <Divider />
@@ -81,10 +65,6 @@ export default function Layout() {
             <ListItemText primary={item.text} />
           </ListItem>
         ))}
-        <ListItem button onClick={handleLogout}>
-          <ListItemIcon><LogoutIcon /></ListItemIcon>
-          <ListItemText primary="登出" />
-        </ListItem>
       </List>
     </div>
   );
@@ -108,7 +88,7 @@ export default function Layout() {
             width: '100%'
           }}>
             <Typography variant="h6" noWrap component="div">
-              {isAdmin ? '旅遊行程管理系統 - 管理員' : '旅遊行程管理系統'}
+              旅遊行程管理系統
             </Typography>
           </Box>
         </Toolbar>
@@ -147,8 +127,7 @@ export default function Layout() {
         }}
       >
         <Toolbar />
-        {outlet}  
-        <Footer />
+        {outlet}
       </Box>
     </Box>
   );
