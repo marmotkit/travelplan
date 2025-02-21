@@ -59,20 +59,37 @@ app.use((req, res, next) => {
 const corsMiddleware = (req, res, next) => {
   const origin = req.headers.origin;
   if (origin === 'https://travel-planner-web.onrender.com') {
+    // 基本 CORS 頭部
     res.set({
       'Access-Control-Allow-Origin': origin,
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
       'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Request-ID',
       'Access-Control-Allow-Credentials': 'true',
       'Access-Control-Max-Age': '86400',
-      'Cache-Control': 'no-cache',
-      'CDN-Cache-Control': 'no-cache',
-      'Cloudflare-CDN-Cache-Control': 'no-cache'
+      'Access-Control-Expose-Headers': 'Content-Type, X-Request-ID',
+      'Vary': 'Origin, Accept-Encoding, Access-Control-Request-Headers'
+    });
+
+    // 添加快取控制頭部
+    res.set({
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'CDN-Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Cloudflare-CDN-Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
     });
   }
 
   // 處理預檢請求
   if (req.method === 'OPTIONS') {
+    // 確保預檢響應包含所有必要的頭部
+    if (req.headers['access-control-request-headers']) {
+      res.set('Access-Control-Allow-Headers', req.headers['access-control-request-headers']);
+    }
+    if (req.headers['access-control-request-method']) {
+      res.set('Access-Control-Allow-Methods', req.headers['access-control-request-method']);
+    }
+    res.set('Content-Length', '0');
     res.status(204).end();
     return;
   }
@@ -89,10 +106,7 @@ apiRouter.use((req, res, next) => {
   // 在請求開始時設置響應頭
   res.set({
     'Content-Type': 'application/json; charset=utf-8',
-    'X-Content-Type-Options': 'nosniff',
-    'Cache-Control': 'no-cache',
-    'CDN-Cache-Control': 'no-cache',
-    'Cloudflare-CDN-Cache-Control': 'no-cache'
+    'X-Content-Type-Options': 'nosniff'
   });
   
   // 攔截 send 方法
@@ -108,7 +122,14 @@ apiRouter.use((req, res, next) => {
     }
     
     // 重新設置內容類型頭部
-    this.set('Content-Type', 'application/json; charset=utf-8');
+    this.set({
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'CDN-Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Cloudflare-CDN-Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
     
     return originalSend.call(this, JSON.stringify(body));
   };
