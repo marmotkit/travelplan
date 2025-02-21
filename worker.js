@@ -8,7 +8,15 @@ async function handleRequest(request) {
   
   // 創建新的請求 URL
   const url = new URL(request.url)
-  const targetUrl = new URL(url.pathname + url.search, apiUrl)
+  
+  // 檢查是否是 API 請求
+  if (!url.pathname.startsWith('/api/')) {
+    return new Response('Not Found', { status: 404 })
+  }
+  
+  // 移除 /api 前綴並創建目標 URL
+  const apiPath = url.pathname.replace('/api', '')
+  const targetUrl = new URL(apiPath + url.search, apiUrl)
   
   // 複製原始請求
   const modifiedRequest = new Request(targetUrl, {
@@ -51,10 +59,13 @@ async function handleRequest(request) {
         headers: headers
       })
     } catch (e) {
-      // 如果不是 JSON，返回文本
-      const text = await response.text()
-      return new Response(JSON.stringify({ data: text }), {
-        status: response.status,
+      // 如果不是 JSON，返回錯誤
+      return new Response(JSON.stringify({
+        error: 'Invalid JSON response',
+        message: 'The API returned an invalid JSON response',
+        data: null
+      }), {
+        status: 500,
         headers: headers
       })
     }
