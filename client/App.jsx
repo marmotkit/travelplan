@@ -11,6 +11,7 @@ import AccommodationList from './pages/AccommodationList';
 import BudgetList from './pages/BudgetList';
 import UserManagement from './pages/UserManagement';
 import ErrorBoundary from './components/ErrorBoundary';
+import PlanList from './pages/PlanList';
 
 const theme = createTheme({
   palette: {
@@ -41,6 +42,7 @@ function App() {
                 <Route index element={<Navigate to="/dashboard" replace />} />
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="users" element={<UserManagement />} />
+                <Route path="activities" element={<PlanList />} />
                 <Route path="plans/*" element={<PlanRoutes />} />
                 <Route path="accommodations" element={<AccommodationList />} />
                 <Route path="budgets" element={<BudgetList />} />

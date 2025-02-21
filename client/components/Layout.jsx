@@ -20,6 +20,7 @@ import {
   Hotel as HotelIcon,
   AttachMoney as AttachMoneyIcon,
   People as PeopleIcon,
+  Event as EventIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -38,6 +39,7 @@ export default function Layout() {
 
   const menuItems = [
     { text: '儀表板', icon: <DashboardIcon />, path: '/dashboard' },
+    { text: '活動管理', icon: <EventIcon />, path: '/activities' },
     { text: '行程計劃', icon: <ListAltIcon />, path: '/plans' },
     { text: '住宿管理', icon: <HotelIcon />, path: '/accommodations' },
     { text: '預算管理', icon: <AttachMoneyIcon />, path: '/budgets' }

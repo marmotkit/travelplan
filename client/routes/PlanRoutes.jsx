@@ -8,11 +8,10 @@ import ItineraryManagement from '../pages/ItineraryManagement';
 const PlanRoutes = () => {
   return (
     <Routes>
-      <Route index element={<PlanList />} />
+      <Route index element={<PlanOverview />} />
       <Route path="new" element={<PlanForm />} />
       <Route path=":id" element={<PlanDetail />} />
       <Route path=":id/edit" element={<PlanForm />} />
-      <Route path="overview" element={<PlanOverview />} />
       <Route path=":planId/itinerary" element={<ItineraryManagement />} />
     </Routes>
   );
