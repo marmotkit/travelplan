@@ -59,11 +59,16 @@ app.use((req, res, next) => {
 const corsMiddleware = (req, res, next) => {
   const origin = req.headers.origin;
   if (origin === 'https://travel-planner-web.onrender.com') {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Request-ID');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Max-Age', '86400');
+    res.set({
+      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+      'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Request-ID',
+      'Access-Control-Allow-Credentials': 'true',
+      'Access-Control-Max-Age': '86400',
+      'Cache-Control': 'no-cache',
+      'CDN-Cache-Control': 'no-cache',
+      'Cloudflare-CDN-Cache-Control': 'no-cache'
+    });
   }
 
   // 處理預檢請求
@@ -84,7 +89,10 @@ apiRouter.use((req, res, next) => {
   // 在請求開始時設置響應頭
   res.set({
     'Content-Type': 'application/json; charset=utf-8',
-    'X-Content-Type-Options': 'nosniff'
+    'X-Content-Type-Options': 'nosniff',
+    'Cache-Control': 'no-cache',
+    'CDN-Cache-Control': 'no-cache',
+    'Cloudflare-CDN-Cache-Control': 'no-cache'
   });
   
   // 攔截 send 方法
@@ -98,6 +106,10 @@ apiRouter.use((req, res, next) => {
         body = { data: body };
       }
     }
+    
+    // 重新設置內容類型頭部
+    this.set('Content-Type', 'application/json; charset=utf-8');
+    
     return originalSend.call(this, JSON.stringify(body));
   };
 
@@ -119,7 +131,7 @@ app.use('/api', apiRouter);
 // 健康檢查端點
 app.get('/health', (req, res) => {
   res.status(200)
-     .contentType('application/json')
+     .set('Content-Type', 'application/json; charset=utf-8')
      .json({
        status: 'ok',
        timestamp: new Date().toISOString(),
@@ -130,7 +142,7 @@ app.get('/health', (req, res) => {
 // 404 處理
 app.use((req, res) => {
   res.status(404)
-     .contentType('application/json')
+     .set('Content-Type', 'application/json; charset=utf-8')
      .json({ error: 'Not Found' });
 });
 
@@ -138,7 +150,7 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   console.error('錯誤:', err);
   res.status(err.status || 500)
-     .contentType('application/json')
+     .set('Content-Type', 'application/json; charset=utf-8')
      .json({
        error: err.message || 'Internal Server Error'
      });
@@ -147,7 +159,7 @@ app.use((err, req, res, next) => {
 // 根路由
 app.get('/', (req, res) => {
   res.status(200)
-     .contentType('application/json')
+     .set('Content-Type', 'application/json; charset=utf-8')
      .json({ 
        message: 'Travel Planner API',
        version: '1.0.0',

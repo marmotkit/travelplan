@@ -21,16 +21,20 @@ exports.createPlan = async (req, res) => {
     const savedPlan = await plan.save();
     console.log('Response:', {
       statusCode: 201,
-      contentType: res.get('Content-Type'),
+      contentType: 'application/json; charset=utf-8',
       planId: savedPlan._id
     });
-    res.status(201).json(savedPlan);
+    res.status(201)
+      .set('Content-Type', 'application/json; charset=utf-8')
+      .json(savedPlan);
   } catch (error) {
     console.error('Error in createPlan:', error);
-    res.status(400).json({ 
-      error: 'Bad Request',
-      message: error.message 
-    });
+    res.status(400)
+      .set('Content-Type', 'application/json; charset=utf-8')
+      .json({ 
+        error: 'Bad Request',
+        message: error.message 
+      });
   }
 };
 
@@ -40,16 +44,20 @@ exports.getPlans = async (req, res) => {
     const plans = await Plan.find().sort({ createdAt: -1 });
     console.log('Response:', {
       statusCode: 200,
-      contentType: res.get('Content-Type'),
+      contentType: 'application/json; charset=utf-8',
       dataLength: plans.length
     });
-    res.status(200).json(plans);
+    res.status(200)
+      .set('Content-Type', 'application/json; charset=utf-8')
+      .json(plans);
   } catch (error) {
     console.error('Error in getPlans:', error);
-    res.status(500).json({ 
-      error: 'Internal Server Error',
-      message: error.message 
-    });
+    res.status(500)
+      .set('Content-Type', 'application/json; charset=utf-8')
+      .json({ 
+        error: 'Internal Server Error',
+        message: error.message 
+      });
   }
 };
 
@@ -59,24 +67,30 @@ exports.getPlan = async (req, res) => {
     if (!plan) {
       console.log('Response:', {
         statusCode: 404,
-        contentType: res.get('Content-Type')
+        contentType: 'application/json; charset=utf-8'
       });
-      return res.status(404).json({ 
-        error: 'Not Found',
-        message: '找不到該行程' 
-      });
+      return res.status(404)
+        .set('Content-Type', 'application/json; charset=utf-8')
+        .json({ 
+          error: 'Not Found',
+          message: '找不到該行程' 
+        });
     }
     console.log('Response:', {
       statusCode: 200,
-      contentType: res.get('Content-Type')
+      contentType: 'application/json; charset=utf-8'
     });
-    res.status(200).json(plan);
+    res.status(200)
+      .set('Content-Type', 'application/json; charset=utf-8')
+      .json(plan);
   } catch (error) {
     console.error('Error in getPlan:', error);
-    res.status(500).json({ 
-      error: 'Internal Server Error',
-      message: error.message 
-    });
+    res.status(500)
+      .set('Content-Type', 'application/json; charset=utf-8')
+      .json({ 
+        error: 'Internal Server Error',
+        message: error.message 
+      });
   }
 };
 
@@ -93,24 +107,30 @@ exports.updatePlan = async (req, res) => {
     if (!plan) {
       console.log('Response:', {
         statusCode: 404,
-        contentType: res.get('Content-Type')
+        contentType: 'application/json; charset=utf-8'
       });
-      return res.status(404).json({ 
-        error: 'Not Found',
-        message: '找不到該行程' 
-      });
+      return res.status(404)
+        .set('Content-Type', 'application/json; charset=utf-8')
+        .json({ 
+          error: 'Not Found',
+          message: '找不到該行程' 
+        });
     }
     console.log('Response:', {
       statusCode: 200,
-      contentType: res.get('Content-Type')
+      contentType: 'application/json; charset=utf-8'
     });
-    res.status(200).json(plan);
+    res.status(200)
+      .set('Content-Type', 'application/json; charset=utf-8')
+      .json(plan);
   } catch (error) {
     console.error('Update error:', error);
-    res.status(400).json({ 
-      error: 'Bad Request',
-      message: error.message 
-    });
+    res.status(400)
+      .set('Content-Type', 'application/json; charset=utf-8')
+      .json({ 
+        error: 'Bad Request',
+        message: error.message 
+      });
   }
 };
 
@@ -120,24 +140,30 @@ exports.deletePlan = async (req, res) => {
     if (!plan) {
       console.log('Response:', {
         statusCode: 404,
-        contentType: res.get('Content-Type')
+        contentType: 'application/json; charset=utf-8'
       });
-      return res.status(404).json({ 
-        error: 'Not Found',
-        message: '找不到該行程' 
-      });
+      return res.status(404)
+        .set('Content-Type', 'application/json; charset=utf-8')
+        .json({ 
+          error: 'Not Found',
+          message: '找不到該行程' 
+        });
     }
     console.log('Response:', {
       statusCode: 200,
-      contentType: res.get('Content-Type')
+      contentType: 'application/json; charset=utf-8'
     });
-    res.status(200).json({ message: '行程已刪除' });
+    res.status(200)
+      .set('Content-Type', 'application/json; charset=utf-8')
+      .json({ message: '行程已刪除' });
   } catch (error) {
     console.error('Error in deletePlan:', error);
-    res.status(500).json({ 
-      error: 'Internal Server Error',
-      message: error.message 
-    });
+    res.status(500)
+      .set('Content-Type', 'application/json; charset=utf-8')
+      .json({ 
+        error: 'Internal Server Error',
+        message: error.message 
+      });
   }
 };
 
@@ -157,12 +183,14 @@ exports.downloadPDF = async (req, res) => {
     if (!plan) {
       console.log('Response:', {
         statusCode: 404,
-        contentType: res.get('Content-Type')
+        contentType: 'application/json; charset=utf-8'
       });
-      return res.status(404).json({ 
-        error: 'Not Found',
-        message: '找不到該活動' 
-      });
+      return res.status(404)
+        .set('Content-Type', 'application/json; charset=utf-8')
+        .json({ 
+          error: 'Not Found',
+          message: '找不到該活動' 
+        });
     }
 
     // 將所有數據打包成一個對象
@@ -176,16 +204,20 @@ exports.downloadPDF = async (req, res) => {
 
     console.log('Response:', {
       statusCode: 200,
-      contentType: res.get('Content-Type')
+      contentType: 'application/json; charset=utf-8'
     });
     // 返回數據給前端
-    res.status(200).json(data);
+    res.status(200)
+      .set('Content-Type', 'application/json; charset=utf-8')
+      .json(data);
 
   } catch (error) {
     console.error('Error in downloadPDF:', error);
-    res.status(500).json({ 
-      error: 'Internal Server Error',
-      message: '獲取 PDF 數據失敗' 
-    });
+    res.status(500)
+      .set('Content-Type', 'application/json; charset=utf-8')
+      .json({ 
+        error: 'Internal Server Error',
+        message: '獲取 PDF 數據失敗' 
+      });
   }
 };
