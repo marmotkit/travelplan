@@ -16,11 +16,23 @@ const config = require('./config/config');
 
 const app = express();
 
-// 移除所有 CORS 相關配置，改用最簡單的方式
+// 在所有路由之前配置 CORS
+app.use(cors({
+  origin: ['https://travel-planner-web.onrender.com', 'http://localhost:5173'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true
+}));
+
+// 添加額外的 CORS 標頭
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', '*');
-  res.setHeader('Access-Control-Allow-Headers', '*');
+  const origin = req.headers.origin;
+  if (origin === 'https://travel-planner-web.onrender.com' || origin === 'http://localhost:5173') {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   next();
 });
 
