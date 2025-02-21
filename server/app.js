@@ -18,35 +18,6 @@ const app = express();
 app.use(express.json());
 app.use(morgan('dev'));
 
-// CORS 中間件 - 必須在所有路由之前
-app.use((req, res, next) => {
-  // 設置允許的來源
-  const origin = req.headers.origin;
-  if (origin === 'https://travel-planner-web.onrender.com') {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-
-  // 設置其他 CORS 頭部
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Request-ID');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Max-Age', '86400');
-
-  // 處理預檢請求
-  if (req.method === 'OPTIONS') {
-    res.status(204).end();
-    return;
-  }
-
-  next();
-});
-
-// API 路由中間件 - 設置 JSON 內容類型
-app.use('/api', (req, res, next) => {
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  next();
-});
-
 // 安全性中間件
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
@@ -63,14 +34,46 @@ app.use(helmet({
 // 壓縮回應
 app.use(compression());
 
+// CORS 中間件
+const corsMiddleware = (req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin === 'https://travel-planner-web.onrender.com') {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Request-ID');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Max-Age', '86400');
+  }
+
+  if (req.method === 'OPTIONS') {
+    res.status(204).end();
+    return;
+  }
+
+  next();
+};
+
 // API 路由
-app.use('/api/plans', planRoutes);
-app.use('/api/trip-items', tripItemRoutes);
-app.use('/api/accommodations', accommodationRoutes);
-app.use('/api/budgets', budgetRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/travel-info', travelInfoRoutes);
-app.use('/api/users', userRoutes);
+const apiRouter = express.Router();
+
+// 為所有 API 路由設置 CORS 和內容類型
+apiRouter.use(corsMiddleware);
+apiRouter.use((req, res, next) => {
+  res.type('json');
+  next();
+});
+
+// 註冊 API 路由
+apiRouter.use('/plans', planRoutes);
+apiRouter.use('/trip-items', tripItemRoutes);
+apiRouter.use('/accommodations', accommodationRoutes);
+apiRouter.use('/budgets', budgetRoutes);
+apiRouter.use('/dashboard', dashboardRoutes);
+apiRouter.use('/travel-info', travelInfoRoutes);
+apiRouter.use('/users', userRoutes);
+
+// 掛載 API 路由
+app.use('/api', apiRouter);
 
 // 健康檢查端點
 app.get('/health', (req, res) => {
@@ -86,7 +89,7 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Not Found' });
 });
 
-// 錯誤處理中間件 - 必須在所有路由之後
+// 錯誤處理
 app.use((err, req, res, next) => {
   console.error('錯誤:', err);
   res.status(err.status || 500).json({
