@@ -16,8 +16,18 @@ const config = require('./config/config');
 
 const app = express();
 
-// 最簡單的 CORS 配置
-app.use(cors());
+// CORS 配置
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? 'https://travel-planner-web.onrender.com'
+    : ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  maxAge: 86400 // 預檢請求的結果可以快取 24 小時
+};
+
+app.use(cors(corsOptions));
 
 // 其他中間件
 app.use(express.json());
