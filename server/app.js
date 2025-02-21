@@ -18,7 +18,9 @@ const app = express();
 
 // CORS 配置必須在所有路由之前
 const corsOptions = {
-  origin: ['https://travel-planner-web.onrender.com', 'http://localhost:5173'],
+  origin: process.env.NODE_ENV === 'production'
+    ? 'https://travel-planner-web.onrender.com'
+    : 'http://localhost:5173',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -27,8 +29,20 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 
+// 啟用 CORS
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));  // 啟用 CORS 預檢
+
+// 處理預檢請求
+app.options('*', cors(corsOptions));
+
+// 添加 CORS 中間件
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', corsOptions.origin);
+  res.header('Access-Control-Allow-Methods', corsOptions.methods.join(','));
+  res.header('Access-Control-Allow-Headers', corsOptions.allowedHeaders.join(','));
+  res.header('Access-Control-Allow-Credentials', 'true');
+  next();
+});
 
 // 其他中間件
 app.use(express.json());
