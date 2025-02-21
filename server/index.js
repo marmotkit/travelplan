@@ -3,13 +3,14 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const app = require('./app');
+const config = require('./config/config');
 
 // 加載環境變數
 dotenv.config();
 
 // 直接使用環境變數
 const port = process.env.PORT || 5001;
-const mongoUri = process.env.MONGO_URI;
+const mongoUri = config.db.uri;
 const nodeEnv = process.env.NODE_ENV || 'development';
 
 console.log('Starting server with configuration:', {
@@ -61,20 +62,21 @@ app.get('/health', (req, res) => {
 });
 
 // 連接到 MongoDB
+if (!mongoUri) {
+  console.error('MongoDB URI is not defined');
+  process.exit(1);
+}
+
 mongoose.connect(mongoUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true
-}).then(() => {
-  console.log('MongoDB connection successful:', {
-    readyState: mongoose.connection.readyState,
-    timestamp: new Date().toISOString()
-  });
-}).catch(err => {
-  console.error('MongoDB connection error:', {
-    error: err.message,
-    stack: err.stack,
-    timestamp: new Date().toISOString()
-  });
+})
+.then(() => {
+  console.log('Successfully connected to MongoDB');
+})
+.catch((error) => {
+  console.error('MongoDB connection error:', error);
+  process.exit(1);
 });
 
 // 啟動服務器

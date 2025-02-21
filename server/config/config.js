@@ -3,7 +3,7 @@ require('dotenv').config();
 const config = {
     // 資料庫配置
     db: {
-        uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/travel_plan'
+        uri: process.env.MONGODB_URI
     },
     
     // 服務器配置
