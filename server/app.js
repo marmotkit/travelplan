@@ -17,26 +17,27 @@ const config = require('./config/config');
 const app = express();
 
 // 在所有路由之前配置 CORS
-app.use(cors({
-  origin: ['https://travel-planner-web.onrender.com', 'http://localhost:5173'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  credentials: true
-}));
-
-// 添加額外的 CORS 標頭
 app.use((req, res, next) => {
+  // 允許特定來源
+  const allowedOrigins = ['https://travel-planner-web.onrender.com', 'http://localhost:5173'];
   const origin = req.headers.origin;
-  if (origin === 'https://travel-planner-web.onrender.com' || origin === 'http://localhost:5173') {
+  
+  if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
   }
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+
+  // 處理 OPTIONS 請求
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+
   next();
 });
 
-// 其他中間件
+// 移除其他 CORS 相關配置
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
