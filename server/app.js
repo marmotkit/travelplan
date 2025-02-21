@@ -51,12 +51,12 @@ app.use((req, res, next) => {
 
 // API 路由
 app.use('/api/users', userRoutes);
-app.use('/api/plans', auth, planRoutes);
-app.use('/api/trip-items', auth, tripItemRoutes);
-app.use('/api/accommodations', auth, accommodationRoutes);
-app.use('/api/budgets', auth, budgetRoutes);
-app.use('/api/dashboard', auth, dashboardRoutes);
-app.use('/api/travel-info', auth, travelInfoRoutes);
+app.use('/api/plans', planRoutes);
+app.use('/api/trip-items', tripItemRoutes);
+app.use('/api/accommodations', accommodationRoutes);
+app.use('/api/budgets', budgetRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/travel-info', travelInfoRoutes);
 
 // 健康檢查端點
 app.get('/health', (req, res) => {
