@@ -9,7 +9,7 @@ import {
   CircularProgress,
   Alert
 } from '@mui/material';
-import api from '../services/api';
+import { dashboardAPI } from '../services/api';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -24,21 +24,17 @@ const Dashboard = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    const fetchStats = async () => {
+      try {
+        const stats = await dashboardAPI.getStats();
+        setStats(stats);
+      } catch (error) {
+        console.error('獲取儀表板數據失敗:', error);
+      }
+    };
 
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get(`${API_URL}/dashboard/stats`);
-      setStats(response.data);
-    } catch (err) {
-      console.error('獲取儀表板數據失敗:', err);
-      setError('無法載入儀表板數據');
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchStats();
+  }, []);
 
   if (loading) {
     return (
