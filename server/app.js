@@ -7,12 +7,11 @@ const compression = require('compression');
 const { auth } = require('./middleware/auth');
 const planRoutes = require('./routes/planRoutes');
 const tripItemRoutes = require('./routes/tripItemRoutes');
-const accommodationsRouter = require('./routes/accommodations');
+const accommodationRoutes = require('./routes/accommodationRoutes');
 const budgetRoutes = require('./routes/budgetRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const travelInfoRoutes = require('./routes/travelInfoRoutes');
 const userRoutes = require('./routes/userRoutes');
-const accommodationRoutes = require('./routes/accommodationRoutes');
 
 const app = express();
 
