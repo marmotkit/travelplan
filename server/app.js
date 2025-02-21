@@ -16,14 +16,19 @@ const config = require('./config/config');
 
 const app = express();
 
-// CORS 配置
-app.use(cors({
-  origin: 'https://travel-planner-web.onrender.com',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-  maxAge: 86400
-}));
+// 手動設定 CORS headers
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://travel-planner-web.onrender.com');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // 處理 OPTIONS 請求
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 // 其他中間件
 app.use(express.json());
