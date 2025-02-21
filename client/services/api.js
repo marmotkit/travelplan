@@ -12,7 +12,8 @@ function generateRequestId() {
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': 'https://travel-planner-web.onrender.com'
   },
   withCredentials: true
 });
@@ -20,6 +21,13 @@ const api = axios.create({
 // 請求攔截器
 api.interceptors.request.use(
   (config) => {
+    // 確保每個請求都帶有正確的 headers
+    config.headers = {
+      ...config.headers,
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': 'https://travel-planner-web.onrender.com'
+    };
+    
     console.log('API 請求:', {
       method: config.method,
       url: config.url,
