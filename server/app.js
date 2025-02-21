@@ -12,50 +12,46 @@ const budgetRoutes = require('./routes/budgetRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const travelInfoRoutes = require('./routes/travelInfoRoutes');
 const userRoutes = require('./routes/userRoutes');
-const config = require('./config/config');
 
 const app = express();
 
-// 手動設定 CORS headers
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://travel-planner-web.onrender.com');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  
-  // 處理 OPTIONS 請求
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
-
-// 其他中間件
+// 基本中間件
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
+
+// CORS 配置
+const corsOptions = {
+  origin: 'https://travel-planner-web.onrender.com',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Length', 'X-Requested-With'],
+  credentials: true,
+  maxAge: 86400,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+};
+
+// 在所有路由之前啟用 CORS
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
+// 安全性中間件
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginOpenerPolicy: { policy: "same-origin" }
+}));
+
+// 壓縮回應
 app.use(compression());
 
-// 日誌中間件
-app.use((req, res, next) => {
-  console.log('收到請求:', {
-    method: req.method,
-    url: req.url,
-    headers: req.headers,
-    body: req.body,
-    timestamp: new Date().toISOString()
-  });
-  next();
-});
-
-// API 路由
-app.use('/api/users', userRoutes);
+// 路由
 app.use('/api/plans', planRoutes);
 app.use('/api/trip-items', tripItemRoutes);
 app.use('/api/accommodations', accommodationRoutes);
 app.use('/api/budgets', budgetRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/travel-info', travelInfoRoutes);
+app.use('/api/users', userRoutes);
 
 // 健康檢查端點
 app.get('/health', (req, res) => {
@@ -76,8 +72,8 @@ app.use((err, req, res, next) => {
 
   res.status(err.status || 500).json({
     error: {
-      message: err.message,
-      status: err.status,
+      message: err.message || '服務器內部錯誤',
+      status: err.status || 500,
       timestamp: new Date().toISOString()
     }
   });
