@@ -1,45 +1,25 @@
 import axios from 'axios';
 
-const API_URL = process.env.NODE_ENV === 'production'
-  ? 'https://travel-planner-api.onrender.com'
-  : 'http://localhost:5001';
-
-// 創建一個自定義的 axios 實例
+// 創建 axios 實例
 const api = axios.create({
-  baseURL: API_URL,
-  timeout: 10000,
+  // 使用 Cloudflare Worker URL 作為基礎 URL
+  baseURL: 'https://hidden-violet-c79a.y134679.workers.dev',
+  // 允許跨域請求攜帶憑證
+  withCredentials: true,
+  // 請求超時時間
+  timeout: 15000,
+  // 請求頭
   headers: {
-    'Accept': 'application/json',
     'Content-Type': 'application/json',
-    'X-Request-ID': Math.random().toString(36).substring(7)
-  },
-  transformResponse: [
-    function (data) {
-      // 嘗試解析響應數據為 JSON
-      try {
-        return JSON.parse(data);
-      } catch (e) {
-        // 如果解析失敗，返回原始數據
-        console.error('Response parsing error:', e);
-        return data;
-      }
-    }
-  ],
-  validateStatus: function (status) {
-    // 只接受 2xx 狀態碼
-    return status >= 200 && status < 300;
+    'X-Request-ID': crypto.randomUUID()
   }
 });
 
 // 請求攔截器
 api.interceptors.request.use(
   (config) => {
-    // 確保請求頭部包含正確的內容類型
-    config.headers = {
-      ...config.headers,
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    };
+    // 每個請求都生成新的請求 ID
+    config.headers['X-Request-ID'] = crypto.randomUUID();
     return config;
   },
   (error) => {
@@ -50,36 +30,11 @@ api.interceptors.request.use(
 // 響應攔截器
 api.interceptors.response.use(
   (response) => {
-    // 檢查響應的內容類型
-    const contentType = response.headers['content-type'];
-    if (!contentType || !contentType.includes('application/json')) {
-      console.warn('Response is not JSON:', {
-        url: response.config.url,
-        contentType,
-        data: response.data
-      });
-      
-      // 如果響應不是 JSON，嘗試解析或轉換
-      if (typeof response.data === 'string') {
-        try {
-          response.data = JSON.parse(response.data);
-        } catch (e) {
-          console.error('Failed to parse response as JSON:', e);
-          response.data = { data: response.data };
-        }
-      }
-    }
     return response;
   },
   (error) => {
-    // 處理錯誤響應
-    if (error.response) {
-      console.error('API Error:', {
-        status: error.response.status,
-        headers: error.response.headers,
-        data: error.response.data
-      });
-    }
+    // 統一錯誤處理
+    console.error('API 請求失敗:', error);
     return Promise.reject(error);
   }
 );
