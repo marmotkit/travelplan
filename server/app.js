@@ -16,20 +16,18 @@ const config = require('./config/config');
 
 const app = express();
 
-// 啟用 CORS
-app.use(cors({
-  origin: true,  // 允許所有來源
-  credentials: true
-}));
+// 移除所有 CORS 相關配置，改用最簡單的方式
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', '*');
+  res.setHeader('Access-Control-Allow-Headers', '*');
+  next();
+});
 
 // 其他中間件
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
-app.use(helmet({
-  crossOriginResourcePolicy: false,  // 禁用這個限制
-  crossOriginOpenerPolicy: false    // 禁用這個限制
-}));
 app.use(compression());
 
 // 日誌中間件
