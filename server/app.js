@@ -19,13 +19,13 @@ const app = express();
 // CORS 配置必須在所有路由之前
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production'
-    ? 'https://travel-planner-web.onrender.com'
-    : 'http://localhost:5173',
+    ? ['https://travel-planner-web.onrender.com']  // 使用陣列
+    : ['http://localhost:5173'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   exposedHeaders: ['Content-Length', 'X-Requested-With'],
-  maxAge: 86400,  // 預檢請求的結果可以快取 24 小時
+  maxAge: 86400,
   optionsSuccessStatus: 200
 };
 
@@ -37,10 +37,13 @@ app.options('*', cors(corsOptions));
 
 // 添加 CORS 中間件
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', corsOptions.origin);
-  res.header('Access-Control-Allow-Methods', corsOptions.methods.join(','));
-  res.header('Access-Control-Allow-Headers', corsOptions.allowedHeaders.join(','));
-  res.header('Access-Control-Allow-Credentials', 'true');
+  const origin = req.headers.origin;
+  if (corsOptions.origin.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Methods', corsOptions.methods.join(','));
+    res.header('Access-Control-Allow-Headers', corsOptions.allowedHeaders.join(','));
+    res.header('Access-Control-Allow-Credentials', 'true');
+  }
   next();
 });
 
@@ -48,7 +51,10 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }
+}));
 app.use(compression());
 
 // 日誌中間件
