@@ -6,15 +6,12 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import zhTW from 'date-fns/locale/zh-TW';
 import Layout from './components/Layout';
-import { ProtectedRoute } from './components/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
 import PlanRoutes from './routes/PlanRoutes';
 import AccommodationList from './pages/AccommodationList';
 import BudgetList from './pages/BudgetList';
-import Login from './pages/Login';
 import UserManagement from './pages/UserManagement';
 import ErrorBoundary from './components/ErrorBoundary';
-import { AuthProvider } from './contexts/AuthContext';
 import PlanList from './pages/PlanList';
 
 const theme = createTheme({
@@ -31,37 +28,25 @@ const theme = createTheme({
 function App() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <ThemeProvider theme={theme}>
-          <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
-            <CssBaseline />
-            <Router>
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <Outlet />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                >
-                  <Route path="/" element={<Layout />}>
-                    <Route index element={<Navigate to="/dashboard" replace />} />
-                    <Route path="dashboard" element={<Dashboard />} />
-                    <Route path="users" element={<UserManagement />} />
-                    <Route path="plans/*" element={<PlanRoutes />} />
-                    <Route path="activities" element={<PlanList />} />
-                    <Route path="accommodations" element={<AccommodationList />} />
-                    <Route path="budgets" element={<BudgetList />} />
-                  </Route>
-                </Route>
-              </Routes>
-            </Router>
-          </LocalizationProvider>
-        </ThemeProvider>
-      </AuthProvider>
+      <ThemeProvider theme={theme}>
+        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
+          <CssBaseline />
+          <Router>
+            <Routes>
+              <Route element={<Layout />}>
+                <Route index element={<Navigate to="/dashboard" replace />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="users" element={<UserManagement />} />
+                <Route path="plans/*" element={<PlanRoutes />} />
+                <Route path="activities" element={<PlanList />} />
+                <Route path="accommodations" element={<AccommodationList />} />
+                <Route path="budgets" element={<BudgetList />} />
+              </Route>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Router>
+        </LocalizationProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }
