@@ -16,27 +16,19 @@ const config = require('./config/config');
 
 const app = express();
 
-// CORS 配置必須在所有路由之前
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://travel-planner-web.onrender.com');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  
-  // 處理預檢請求
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
+// 啟用 CORS
+app.use(cors({
+  origin: true,  // 允許所有來源
+  credentials: true
+}));
 
 // 其他中間件
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" },
-  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }
+  crossOriginResourcePolicy: false,  // 禁用這個限制
+  crossOriginOpenerPolicy: false    // 禁用這個限制
 }));
 app.use(compression());
 
