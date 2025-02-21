@@ -53,11 +53,11 @@ export default api;
 
 // 旅行計劃相關 API
 export const planAPI = {
-  getPlans: () => api.get('/plans'),
-  getPlan: (id) => api.get(`/plans/${id}`),
-  createPlan: (data) => api.post('/plans', data),
-  updatePlan: (id, data) => api.put(`/plans/${id}`, data),
-  deletePlan: (id) => api.delete(`/plans/${id}`)
+  getPlans: () => api.get('/api/plans'),
+  getPlan: (id) => api.get(`/api/plans/${id}`),
+  createPlan: (data) => api.post('/api/plans', data),
+  updatePlan: (id, data) => api.put(`/api/plans/${id}`, data),
+  deletePlan: (id) => api.delete(`/api/plans/${id}`)
 };
 
 // 行程項目相關 API
@@ -86,8 +86,8 @@ export const budgetAPI = {
 
 // 儀表板相關 API
 export const dashboardAPI = {
-  getSummary: () => api.get('/dashboard/summary'),
-  getStats: () => api.get('/dashboard/stats')
+  getSummary: () => api.get('/api/dashboard/summary'),
+  getStats: () => api.get('/api/dashboard/stats')
 };
 
 // 旅行資訊相關 API
