@@ -18,18 +18,35 @@ const app = express();
 // 基本中間件
 app.use(express.json());
 app.use(morgan('dev'));
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+  crossOriginOpenerPolicy: false
+}));
 app.use(compression());
 
-// CORS 配置
-app.use(cors({
-  origin: 'https://travel-planner-web.onrender.com',
+// CORS 配置必須在其他中間件之前
+const corsOptions = {
+  origin: (origin, callback) => {
+    const allowedOrigins = ['https://travel-planner-web.onrender.com'];
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
   exposedHeaders: ['Content-Type', 'X-Request-ID'],
   credentials: true,
-  maxAge: 86400
-}));
+  maxAge: 86400,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
+
+// 預檢請求處理
+app.options('*', cors(corsOptions));
 
 // API 中間件
 const apiMiddleware = (req, res, next) => {
@@ -96,9 +113,28 @@ app.use((req, res) => {
 // 錯誤處理
 app.use((err, req, res, next) => {
   console.error('錯誤:', err);
+  
+  // CORS 錯誤處理
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({
+      error: 'CORS Error',
+      message: 'Origin not allowed'
+    });
+  }
+  
   res.status(err.status || 500).json({
     error: err.message || 'Internal Server Error'
   });
+});
+
+// 啟動時打印配置
+console.log('CORS 配置:', {
+  allowedOrigins: ['https://travel-planner-web.onrender.com'],
+  methods: corsOptions.methods,
+  allowedHeaders: corsOptions.allowedHeaders,
+  exposedHeaders: corsOptions.exposedHeaders,
+  credentials: corsOptions.credentials,
+  maxAge: corsOptions.maxAge
 });
 
 module.exports = app;
