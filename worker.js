@@ -8,7 +8,7 @@ async function handleRequest(request) {
   
   // 創建新的請求 URL
   const url = new URL(request.url)
-  const targetUrl = new URL(url.pathname, apiUrl)
+  const targetUrl = new URL(url.pathname + url.search, apiUrl)
   
   // 複製原始請求
   const modifiedRequest = new Request(targetUrl, {
@@ -23,13 +23,14 @@ async function handleRequest(request) {
     const response = await fetch(modifiedRequest)
     
     // 創建新的響應頭
-    const headers = new Headers(response.headers)
-    headers.set('Access-Control-Allow-Origin', 'https://travel-planner-web.onrender.com')
-    headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
-    headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Request-ID')
-    headers.set('Access-Control-Allow-Credentials', 'true')
-    headers.set('Access-Control-Max-Age', '86400')
-    headers.set('Content-Type', 'application/json')
+    const headers = new Headers({
+      'Access-Control-Allow-Origin': 'https://travel-planner-web.onrender.com',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Request-ID',
+      'Access-Control-Allow-Credentials': 'true',
+      'Access-Control-Max-Age': '86400',
+      'Content-Type': 'application/json'
+    })
     
     // 處理預檢請求
     if (request.method === 'OPTIONS') {
@@ -39,28 +40,24 @@ async function handleRequest(request) {
       })
     }
 
-    // 讀取並解析響應數據
-    let responseData
-    try {
-      responseData = await response.json()
-    } catch (e) {
-      // 如果無法解析為 JSON，返回原始文本
-      responseData = { data: await response.text() }
-    }
+    // 克隆響應以便多次讀取
+    const clonedResponse = response.clone()
 
-    // 確保響應數據是一個對象
-    if (responseData === null || responseData === undefined) {
-      responseData = { data: null }
-    } else if (typeof responseData !== 'object') {
-      responseData = { data: responseData }
+    try {
+      // 嘗試解析為 JSON
+      const data = await clonedResponse.json()
+      return new Response(JSON.stringify(data), {
+        status: response.status,
+        headers: headers
+      })
+    } catch (e) {
+      // 如果不是 JSON，返回文本
+      const text = await response.text()
+      return new Response(JSON.stringify({ data: text }), {
+        status: response.status,
+        headers: headers
+      })
     }
-    
-    // 返回修改後的響應
-    return new Response(JSON.stringify(responseData), {
-      status: response.status,
-      statusText: response.statusText,
-      headers: headers
-    })
   } catch (error) {
     // 錯誤處理
     return new Response(JSON.stringify({
