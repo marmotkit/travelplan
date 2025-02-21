@@ -15,13 +15,13 @@ async function handleRequest(request) {
   }
   
   // 移除 /api 前綴並創建目標 URL
-  const apiPath = url.pathname.replace('/api', '')
-  const targetUrl = new URL(apiPath + url.search, apiUrl)
+  const apiPath = url.pathname
+  const targetUrl = new URL(apiPath, apiUrl)
   
   // 創建新的請求頭
   const headers = new Headers(request.headers)
   headers.set('Origin', 'https://travel-planner-web.onrender.com')
-  headers.set('Host', new URL(apiUrl).host)
+  headers.delete('Host') // 讓瀏覽器自動設置 Host
   
   // 複製原始請求
   const modifiedRequest = new Request(targetUrl, {
@@ -46,6 +46,8 @@ async function handleRequest(request) {
       })
     }
 
+    console.log('Sending request to:', targetUrl.toString())
+    
     // 發送請求到目標 API
     const response = await fetch(modifiedRequest)
     
@@ -60,10 +62,11 @@ async function handleRequest(request) {
 
     // 如果響應不成功，返回錯誤
     if (!response.ok) {
+      const text = await response.text()
       return new Response(JSON.stringify({
         error: 'API Error',
         message: `API returned status ${response.status}`,
-        data: null
+        data: text
       }), {
         status: response.status,
         headers: responseHeaders
@@ -72,6 +75,7 @@ async function handleRequest(request) {
 
     // 讀取響應數據
     const text = await response.text()
+    console.log('API Response:', text)
     
     try {
       // 嘗試解析為 JSON
