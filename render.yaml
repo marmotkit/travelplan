@@ -18,6 +18,58 @@ services:
         value: your_very_secure_jwt_secret
       - key: NODE_ENV
         value: production
+    headers:
+      - path: /*
+        name: Content-Type
+        value: application/json; charset=utf-8
+      - path: /*
+        name: Access-Control-Allow-Origin
+        value: https://travel-planner.onrender.com
+      - path: /*
+        name: Access-Control-Allow-Methods
+        value: GET, POST, PUT, DELETE, PATCH, OPTIONS
+      - path: /*
+        name: Access-Control-Allow-Headers
+        value: Content-Type, Authorization, X-Request-ID
+      - path: /*
+        name: Access-Control-Expose-Headers
+        value: Content-Type, X-Request-ID
+      - path: /*
+        name: Access-Control-Allow-Credentials
+        value: "true"
+      - path: /*
+        name: Access-Control-Max-Age
+        value: "86400"
+      - path: /*
+        name: Cache-Control
+        value: no-store, no-cache, must-revalidate, proxy-revalidate
+      - path: /*
+        name: CDN-Cache-Control
+        value: no-store, no-cache, must-revalidate, proxy-revalidate
+      - path: /*
+        name: Cloudflare-CDN-Cache-Control
+        value: no-store, no-cache, must-revalidate, proxy-revalidate
+      - path: /*
+        name: Pragma
+        value: no-cache
+      - path: /*
+        name: Expires
+        value: "0"
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-XSS-Protection
+        value: 1; mode=block
+      - path: /*
+        name: Referrer-Policy
+        value: same-origin
+      - path: /*
+        name: Strict-Transport-Security
+        value: max-age=31536000; includeSubDomains; preload
     healthCheckPath: /health
     autoDeploy: true
     domains:
