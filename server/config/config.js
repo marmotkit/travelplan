@@ -20,9 +20,7 @@ const config = {
 
     // CORS 配置
     cors: {
-        origins: process.env.NODE_ENV === 'production'
-            ? ['https://travel-planner-web.onrender.com']
-            : ['http://localhost:5173']
+        origins: ['https://travel-planner-web.onrender.com', 'http://localhost:5173']
     }
 };
 
