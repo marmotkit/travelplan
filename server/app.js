@@ -15,30 +15,11 @@ const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
-// CORS 配置 - 必須在其他中間件之前
-const corsOptions = {
-  origin: 'https://travel-planner-web.onrender.com',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  exposedHeaders: ['Content-Length', 'X-Requested-With'],
-  credentials: true,
-  maxAge: 86400
-};
-
 // 在所有中間件之前啟用 CORS
-app.use(cors(corsOptions));
-
-// 添加額外的 CORS 頭部
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://travel-planner-web.onrender.com');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 
 // 基本中間件
 app.use(express.json());
@@ -46,15 +27,9 @@ app.use(morgan('dev'));
 
 // 安全性中間件
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" },
-  crossOriginOpenerPolicy: { policy: "same-origin" },
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      connectSrc: ["'self'", "https://travel-planner-web.onrender.com"],
-      frameAncestors: ["'none'"]
-    }
-  }
+  crossOriginResourcePolicy: false,
+  crossOriginOpenerPolicy: false,
+  contentSecurityPolicy: false
 }));
 
 // 壓縮回應
