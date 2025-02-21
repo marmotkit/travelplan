@@ -12,6 +12,7 @@ const budgetRoutes = require('./routes/budgetRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const travelInfoRoutes = require('./routes/travelInfoRoutes');
 const userRoutes = require('./routes/userRoutes');
+const config = require('./config/config');
 
 const app = express();
 
@@ -36,12 +37,10 @@ app.use((req, res, next) => {
 
 // CORS 配置
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production'
-    ? ['https://travel-planner-web.onrender.com']
-    : ['http://localhost:5173'],
+  origin: config.cors.origins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 200
 };
 
