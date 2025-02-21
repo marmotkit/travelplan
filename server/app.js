@@ -18,11 +18,7 @@ const app = express();
 // 基本中間件
 app.use(express.json());
 app.use(morgan('dev'));
-
-// 安全性中間件
 app.use(helmet());
-
-// 壓縮回應
 app.use(compression());
 
 // CORS 配置
@@ -35,13 +31,15 @@ app.use(cors({
   maxAge: 86400
 }));
 
-// API 路由
-app.use('/api', (req, res, next) => {
+// API 中間件
+const apiMiddleware = (req, res, next) => {
   // 設置響應頭部
-  res.header('Content-Type', 'application/json; charset=utf-8');
-  res.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.header('Pragma', 'no-cache');
-  res.header('Expires', '0');
+  res.header({
+    'Content-Type': 'application/json; charset=utf-8',
+    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0'
+  });
 
   // 修改 res.json 方法
   const originalJson = res.json;
@@ -58,26 +56,36 @@ app.use('/api', (req, res, next) => {
   };
 
   next();
-});
+};
 
-// 註冊路由
-app.use('/api/plans', planRoutes);
-app.use('/api/trip-items', tripItemRoutes);
-app.use('/api/accommodations', accommodationRoutes);
-app.use('/api/budgets', budgetRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/travel-info', travelInfoRoutes);
-app.use('/api/users', userRoutes);
+// API 路由
+const apiRouter = express.Router();
+apiRouter.use(apiMiddleware);
+
+// 註冊 API 路由
+apiRouter.use('/plans', planRoutes);
+apiRouter.use('/trip-items', tripItemRoutes);
+apiRouter.use('/accommodations', accommodationRoutes);
+apiRouter.use('/budgets', budgetRoutes);
+apiRouter.use('/dashboard', dashboardRoutes);
+apiRouter.use('/travel-info', travelInfoRoutes);
+apiRouter.use('/users', userRoutes);
+
+// 掛載 API 路由
+app.use('/api', apiRouter);
 
 // 健康檢查端點
 app.get('/health', (req, res) => {
-  res.status(200)
-     .set('Content-Type', 'application/json; charset=utf-8')
-     .json({
-       status: 'ok',
-       timestamp: new Date().toISOString(),
-       environment: process.env.NODE_ENV
-     });
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// 根路由
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Travel Planner API',
+    version: '1.0.0',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // 404 處理
@@ -90,15 +98,6 @@ app.use((err, req, res, next) => {
   console.error('錯誤:', err);
   res.status(err.status || 500).json({
     error: err.message || 'Internal Server Error'
-  });
-});
-
-// 根路由
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'Travel Planner API',
-    version: '1.0.0',
-    timestamp: new Date().toISOString()
   });
 });
 
