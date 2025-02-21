@@ -20,102 +20,54 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 // 安全性中間件
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" },
-  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      connectSrc: ["'self'", "https://travel-planner-web.onrender.com", "https://travel-planner-api.onrender.com"],
-      frameAncestors: ["'none'"]
-    }
-  }
-}));
+app.use(helmet());
 
 // 壓縮回應
 app.use(compression());
 
-// 調試中間件
-app.use((req, res, next) => {
-  console.log('Request:', {
-    method: req.method,
-    url: req.url,
-    headers: req.headers,
-    timestamp: new Date().toISOString()
-  });
-
-  // 監聽響應完成事件
-  res.on('finish', () => {
-    console.log('Response:', {
-      statusCode: res.statusCode,
-      headers: res.getHeaders(),
-      timestamp: new Date().toISOString()
-    });
-  });
-
-  next();
-});
-
 // CORS 配置
-const corsOptions = {
+app.use(cors({
   origin: 'https://travel-planner-web.onrender.com',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
   exposedHeaders: ['Content-Type', 'X-Request-ID'],
   credentials: true,
-  maxAge: 86400,
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-};
+  maxAge: 86400
+}));
 
 // API 路由
-const apiRouter = express.Router();
+app.use('/api', (req, res, next) => {
+  // 設置響應頭部
+  res.header('Content-Type', 'application/json; charset=utf-8');
+  res.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.header('Pragma', 'no-cache');
+  res.header('Expires', '0');
 
-// 為所有 API 路由設置 CORS 和內容類型
-apiRouter.use(cors(corsOptions));
-apiRouter.use((req, res, next) => {
-  // 設置快取控制頭部
-  res.set({
-    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-    'CDN-Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-    'Cloudflare-CDN-Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-    'Pragma': 'no-cache',
-    'Expires': '0',
-    'X-Content-Type-Options': 'nosniff'
-  });
-
-  // 攔截 send 方法
-  const originalSend = res.send;
-  res.send = function(body) {
+  // 修改 res.json 方法
+  const originalJson = res.json;
+  res.json = function(body) {
     // 確保響應是 JSON 格式
-    if (body && typeof body === 'string') {
+    if (typeof body === 'string') {
       try {
         body = JSON.parse(body);
       } catch (e) {
         body = { data: body };
       }
     }
-    
-    // 設置內容類型
-    this.set('Content-Type', 'application/json; charset=utf-8');
-    
-    return originalSend.call(this, JSON.stringify(body));
+    return originalJson.call(this, body);
   };
 
   next();
 });
 
-// 註冊 API 路由
-apiRouter.use('/plans', planRoutes);
-apiRouter.use('/trip-items', tripItemRoutes);
-apiRouter.use('/accommodations', accommodationRoutes);
-apiRouter.use('/budgets', budgetRoutes);
-apiRouter.use('/dashboard', dashboardRoutes);
-apiRouter.use('/travel-info', travelInfoRoutes);
-apiRouter.use('/users', userRoutes);
-
-// 掛載 API 路由
-app.use('/api', apiRouter);
+// 註冊路由
+app.use('/api/plans', planRoutes);
+app.use('/api/trip-items', tripItemRoutes);
+app.use('/api/accommodations', accommodationRoutes);
+app.use('/api/budgets', budgetRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/travel-info', travelInfoRoutes);
+app.use('/api/users', userRoutes);
 
 // 健康檢查端點
 app.get('/health', (req, res) => {
@@ -130,30 +82,24 @@ app.get('/health', (req, res) => {
 
 // 404 處理
 app.use((req, res) => {
-  res.status(404)
-     .set('Content-Type', 'application/json; charset=utf-8')
-     .json({ error: 'Not Found' });
+  res.status(404).json({ error: 'Not Found' });
 });
 
 // 錯誤處理
 app.use((err, req, res, next) => {
   console.error('錯誤:', err);
-  res.status(err.status || 500)
-     .set('Content-Type', 'application/json; charset=utf-8')
-     .json({
-       error: err.message || 'Internal Server Error'
-     });
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal Server Error'
+  });
 });
 
 // 根路由
 app.get('/', (req, res) => {
-  res.status(200)
-     .set('Content-Type', 'application/json; charset=utf-8')
-     .json({ 
-       message: 'Travel Planner API',
-       version: '1.0.0',
-       timestamp: new Date().toISOString()
-     });
+  res.json({ 
+    message: 'Travel Planner API',
+    version: '1.0.0',
+    timestamp: new Date().toISOString()
+  });
 });
 
 module.exports = app;
