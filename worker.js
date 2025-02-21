@@ -3,75 +3,77 @@ addEventListener('fetch', event => {
 })
 
 async function handleRequest(request) {
-  // 允許的來源
-  const ALLOWED_ORIGIN = 'https://travel-planner-web.onrender.com'
+  // API 基礎 URL
+  const apiUrl = 'https://travel-planner-api.onrender.com'
   
-  // 檢查請求來源
-  const origin = request.headers.get('Origin')
+  // 創建新的請求 URL
+  const url = new URL(request.url)
+  const targetUrl = new URL(url.pathname, apiUrl)
   
-  // 如果是預檢請求
-  if (request.method === 'OPTIONS') {
-    return new Response(null, {
-      headers: {
-        'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Request-ID',
-        'Access-Control-Expose-Headers': 'Content-Type, X-Request-ID',
-        'Access-Control-Allow-Credentials': 'true',
-        'Access-Control-Max-Age': '86400',
-        'Content-Type': 'application/json; charset=utf-8',
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-        'CDN-Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-        'Cloudflare-CDN-Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
-        'X-Content-Type-Options': 'nosniff'
-      }
-    })
-  }
+  // 複製原始請求
+  const modifiedRequest = new Request(targetUrl, {
+    method: request.method,
+    headers: request.headers,
+    body: request.body,
+    redirect: 'follow'
+  })
 
   try {
-    // 發送請求到原始服務器
-    const response = await fetch(request)
+    // 發送請求到目標 API
+    const response = await fetch(modifiedRequest)
     
-    // 創建新的響應頭部
+    // 創建新的響應頭
     const headers = new Headers(response.headers)
+    headers.set('Access-Control-Allow-Origin', 'https://travel-planner-web.onrender.com')
+    headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
+    headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Request-ID')
+    headers.set('Access-Control-Allow-Credentials', 'true')
+    headers.set('Access-Control-Max-Age', '86400')
+    headers.set('Content-Type', 'application/json')
     
-    // 設置 CORS 頭部
-    if (origin === ALLOWED_ORIGIN) {
-      headers.set('Access-Control-Allow-Origin', ALLOWED_ORIGIN)
-      headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
-      headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Request-ID')
-      headers.set('Access-Control-Expose-Headers', 'Content-Type, X-Request-ID')
-      headers.set('Access-Control-Allow-Credentials', 'true')
-      headers.set('Access-Control-Max-Age', '86400')
+    // 處理預檢請求
+    if (request.method === 'OPTIONS') {
+      return new Response(null, {
+        status: 204,
+        headers: headers
+      })
+    }
+
+    // 讀取並解析響應數據
+    let responseData
+    try {
+      responseData = await response.json()
+    } catch (e) {
+      // 如果無法解析為 JSON，返回原始文本
+      responseData = { data: await response.text() }
+    }
+
+    // 確保響應數據是一個對象
+    if (responseData === null || responseData === undefined) {
+      responseData = { data: null }
+    } else if (typeof responseData !== 'object') {
+      responseData = { data: responseData }
     }
     
-    // 設置內容類型和快取控制
-    headers.set('Content-Type', 'application/json; charset=utf-8')
-    headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
-    headers.set('CDN-Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
-    headers.set('Cloudflare-CDN-Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
-    headers.set('Pragma', 'no-cache')
-    headers.set('Expires', '0')
-    headers.set('X-Content-Type-Options', 'nosniff')
-    
-    // 創建新的響應
-    return new Response(response.body, {
+    // 返回修改後的響應
+    return new Response(JSON.stringify(responseData), {
       status: response.status,
       statusText: response.statusText,
-      headers
+      headers: headers
     })
-  } catch (err) {
+  } catch (error) {
     // 錯誤處理
     return new Response(JSON.stringify({
-      error: 'Internal Server Error',
-      message: err.message
+      error: 'Proxy Error',
+      message: error.message,
+      data: null
     }), {
       status: 500,
       headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': 'https://travel-planner-web.onrender.com',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Request-ID',
         'Access-Control-Allow-Credentials': 'true'
       }
     })
