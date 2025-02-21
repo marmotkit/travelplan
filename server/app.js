@@ -18,9 +18,7 @@ const app = express();
 
 // CORS 配置
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? 'https://travel-planner-web.onrender.com'
-    : ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  origin: config.corsOrigin,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,

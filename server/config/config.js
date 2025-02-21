@@ -1,27 +1,18 @@
 require('dotenv').config();
 
 const config = {
-    // 資料庫配置
-    db: {
-        uri: process.env.MONGODB_URI
-    },
-    
-    // 服務器配置
-    server: {
+    development: {
         port: process.env.PORT || 5001,
-        baseUrl: '/api'
+        mongoUri: process.env.MONGO_URI,
+        jwtSecret: process.env.JWT_SECRET,
+        corsOrigin: ['http://localhost:5173', 'http://127.0.0.1:5173']
     },
-
-    // JWT 配置
-    jwt: {
-        secret: process.env.JWT_SECRET || 'your-secret-key',
-        expiresIn: '24h'
-    },
-
-    // CORS 配置
-    cors: {
-        origins: ['https://travel-planner-web.onrender.com', 'http://localhost:5173']
+    production: {
+        port: process.env.PORT || 5001,
+        mongoUri: process.env.MONGO_URI,
+        jwtSecret: process.env.JWT_SECRET,
+        corsOrigin: 'https://travel-planner-web.onrender.com'
     }
 };
 
-module.exports = config; 
+module.exports = config[process.env.NODE_ENV || 'development']; 
