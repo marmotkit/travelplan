@@ -18,55 +18,77 @@ async function handleRequest(request) {
   const apiPath = url.pathname.replace('/api', '')
   const targetUrl = new URL(apiPath + url.search, apiUrl)
   
+  // 創建新的請求頭
+  const headers = new Headers(request.headers)
+  headers.set('Origin', 'https://travel-planner-web.onrender.com')
+  headers.set('Host', new URL(apiUrl).host)
+  
   // 複製原始請求
   const modifiedRequest = new Request(targetUrl, {
     method: request.method,
-    headers: request.headers,
+    headers: headers,
     body: request.body,
     redirect: 'follow'
   })
 
   try {
-    // 發送請求到目標 API
-    const response = await fetch(modifiedRequest)
-    
-    // 創建新的響應頭
-    const headers = new Headers({
-      'Access-Control-Allow-Origin': 'https://travel-planner-web.onrender.com',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Request-ID',
-      'Access-Control-Allow-Credentials': 'true',
-      'Access-Control-Max-Age': '86400',
-      'Content-Type': 'application/json'
-    })
-    
     // 處理預檢請求
     if (request.method === 'OPTIONS') {
       return new Response(null, {
         status: 204,
-        headers: headers
+        headers: {
+          'Access-Control-Allow-Origin': 'https://travel-planner-web.onrender.com',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Request-ID',
+          'Access-Control-Allow-Credentials': 'true',
+          'Access-Control-Max-Age': '86400'
+        }
       })
     }
 
-    // 克隆響應以便多次讀取
-    const clonedResponse = response.clone()
+    // 發送請求到目標 API
+    const response = await fetch(modifiedRequest)
+    
+    // 創建新的響應頭
+    const responseHeaders = new Headers({
+      'Access-Control-Allow-Origin': 'https://travel-planner-web.onrender.com',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Request-ID',
+      'Access-Control-Allow-Credentials': 'true',
+      'Content-Type': 'application/json'
+    })
 
-    try {
-      // 嘗試解析為 JSON
-      const data = await clonedResponse.json()
-      return new Response(JSON.stringify(data), {
-        status: response.status,
-        headers: headers
-      })
-    } catch (e) {
-      // 如果不是 JSON，返回錯誤
+    // 如果響應不成功，返回錯誤
+    if (!response.ok) {
       return new Response(JSON.stringify({
-        error: 'Invalid JSON response',
-        message: 'The API returned an invalid JSON response',
+        error: 'API Error',
+        message: `API returned status ${response.status}`,
         data: null
       }), {
+        status: response.status,
+        headers: responseHeaders
+      })
+    }
+
+    // 讀取響應數據
+    const text = await response.text()
+    
+    try {
+      // 嘗試解析為 JSON
+      const data = JSON.parse(text)
+      return new Response(JSON.stringify(data), {
+        status: 200,
+        headers: responseHeaders
+      })
+    } catch (e) {
+      // 返回解析錯誤
+      return new Response(JSON.stringify({
+        error: 'Invalid JSON',
+        message: 'Failed to parse API response as JSON',
+        data: text
+      }), {
         status: 500,
-        headers: headers
+        headers: responseHeaders
       })
     }
   } catch (error) {
