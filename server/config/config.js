@@ -11,8 +11,8 @@ const config = {
         port: process.env.PORT || 5001,
         mongoUri: process.env.MONGODB_URI,
         jwtSecret: process.env.JWT_SECRET,
-        corsOrigin: 'https://travel-planner-web.onrender.com'
+        corsOrigin: ['https://travel-planner-web.onrender.com']
     }
 };
 
-module.exports = config[process.env.NODE_ENV || 'development']; 
+module.exports = config[process.env.NODE_ENV || 'development'];
