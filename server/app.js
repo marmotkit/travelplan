@@ -16,17 +16,18 @@ const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
-// 最簡單的 CORS 設置 - 允許所有來源
+// 移除其他所有 CORS 相關配置，只保留這個最基本的
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', '*');
-  res.header('Access-Control-Allow-Headers', '*');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', '*');
+  res.setHeader('Access-Control-Allow-Headers', '*');
+  
+  // 處理 OPTIONS 請求
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  
   next();
-});
-
-// 處理 OPTIONS 請求
-app.options('*', (req, res) => {
-  res.status(200).end();
 });
 
 // 其他中間件
@@ -40,13 +41,6 @@ app.use(compression());
 
 // Serve 靜態文件
 app.use(express.static(path.join(__dirname, '../client/dist')));
-
-// 確保 API 路由也能正確處理 CORS
-app.use('/api', (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://travel-planner-web.onrender.com');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  next();
-});
 
 // API 路由
 const apiRouter = express.Router();
