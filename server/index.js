@@ -181,31 +181,30 @@ process.on('uncaughtException', (error) => {
   });
 });
 
-// Error handling middleware
+// 錯誤處理中間件
 app.use((err, req, res, next) => {
-  console.error('Global error handler:', {
-    error: {
-      name: err.name,
-      message: err.message,
-      stack: err.stack
-    },
-    request: {
-      method: req.method,
-      path: req.path,
-      headers: req.headers,
-      body: req.body
-    },
-    timestamp: new Date().toISOString()
+  console.error('錯誤處理中間件:', {
+    error: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method,
+    headers: req.headers
+  });
+
+  res.status(err.status || 500).json({
+    error: process.env.NODE_ENV === 'production' ? '服務器錯誤' : err.message
+  });
+});
+
+// 404 處理
+app.use((req, res) => {
+  console.log('404 處理:', {
+    path: req.path,
+    method: req.method,
+    headers: req.headers
   });
   
-  res.status(500).json({
-    message: '伺服器錯誤',
-    error: {
-      name: err.name,
-      message: err.message,
-      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
-    }
-  });
+  res.status(404).json({ error: '找不到該資源' });
 });
 
 mongoose.connection.on('error', (error) => {
