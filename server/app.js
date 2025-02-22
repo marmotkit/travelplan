@@ -54,7 +54,6 @@ app.use('/api', (req, res, next) => {
 
 // API 路由
 const apiRouter = express.Router();
-apiRouter.use(cors(corsOptions)); // 在 API 路由中也啟用 CORS
 
 // 註冊 API 路由
 apiRouter.use('/plans', planRoutes);
