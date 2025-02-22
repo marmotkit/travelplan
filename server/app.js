@@ -16,34 +16,20 @@ const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
-// CORS 配置
-const corsOptions = {
-  origin: 'https://travel-planner-web.onrender.com',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
-  credentials: true,
-  maxAge: 86400,
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-};
-
-// 全局啟用 CORS
-app.use(cors(corsOptions));
-
-// 確保所有響應都包含 CORS 標頭
+// CORS 中間件
 app.use((req, res, next) => {
-  // 添加必要的 CORS 標頭
+  // 允許的來源
   res.header('Access-Control-Allow-Origin', 'https://travel-planner-web.onrender.com');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Request-ID');
   res.header('Access-Control-Allow-Credentials', 'true');
-  
-  // 如果是 OPTIONS 請求，直接返回 204
+  res.header('Access-Control-Max-Age', '86400');
+
+  // 處理 OPTIONS 請求
   if (req.method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Request-ID');
-    res.header('Access-Control-Max-Age', '86400');
     return res.status(204).end();
   }
-  
+
   next();
 });
 
@@ -59,28 +45,15 @@ app.use(compression());
 // Serve 靜態文件
 app.use(express.static(path.join(__dirname, '../client/dist')));
 
-// API 中間件
-const apiMiddleware = (req, res, next) => {
-  // 添加 CORS 標頭
+// 確保 API 路由也能正確處理 CORS
+app.use('/api', (req, res, next) => {
   res.header('Access-Control-Allow-Origin', 'https://travel-planner-web.onrender.com');
   res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Request-ID');
-  
-  // 其他標頭
-  res.header({
-    'Content-Type': 'application/json; charset=utf-8',
-    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-    'Pragma': 'no-cache',
-    'Expires': '0'
-  });
-
   next();
-};
+});
 
 // API 路由
 const apiRouter = express.Router();
-apiRouter.use(apiMiddleware);
 apiRouter.use(cors(corsOptions)); // 在 API 路由中也啟用 CORS
 
 // 註冊 API 路由
