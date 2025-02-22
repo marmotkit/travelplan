@@ -10,7 +10,9 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
     'X-Request-ID': crypto.randomUUID()
-  }
+  },
+  // 允許跨域請求
+  withCredentials: false
 });
 
 // 請求攔截器

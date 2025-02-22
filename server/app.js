@@ -16,20 +16,16 @@ const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
-// CORS 配置必須在其他中間件之前
-app.use(cors({
-  origin: 'https://travel-planner-web.onrender.com',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
-  exposedHeaders: ['Content-Length', 'X-Request-ID'],
-  credentials: true,
-  preflightContinue: false,
-  optionsSuccessStatus: 204,
-  maxAge: 86400
-}));
+// 最基本的 CORS 配置
+app.use(cors());
 
-// OPTIONS 請求處理
-app.options('*', cors());
+// 或者完全禁用 CORS
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  next();
+});
 
 // 其他中間件
 app.use(express.json());
