@@ -24,29 +24,19 @@ app.use(helmet({
 }));
 app.use(compression());
 
-// CORS 配置必須在其他中間件之前
-const corsOptions = {
-  origin: (origin, callback) => {
-    const allowedOrigins = ['https://travel-planner-web.onrender.com'];
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
-  exposedHeaders: ['Content-Type', 'X-Request-ID'],
-  credentials: true,
-  maxAge: 86400,
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-};
-
-app.use(cors(corsOptions));
-
-// 預檢請求處理
-app.options('*', cors(corsOptions));
+// CORS 配置
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://travel-planner-web.onrender.com');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Request-ID');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Max-Age', '86400');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+  next();
+});
 
 // API 中間件
 const apiMiddleware = (req, res, next) => {
@@ -130,11 +120,11 @@ app.use((err, req, res, next) => {
 // 啟動時打印配置
 console.log('CORS 配置:', {
   allowedOrigins: ['https://travel-planner-web.onrender.com'],
-  methods: corsOptions.methods,
-  allowedHeaders: corsOptions.allowedHeaders,
-  exposedHeaders: corsOptions.exposedHeaders,
-  credentials: corsOptions.credentials,
-  maxAge: corsOptions.maxAge
+  methods: ['GET, POST, PUT, DELETE, PATCH, OPTIONS'],
+  allowedHeaders: ['Content-Type, Authorization, X-Request-ID'],
+  exposedHeaders: ['Content-Type, X-Request-ID'],
+  credentials: 'true',
+  maxAge: '86400'
 });
 
 module.exports = app;

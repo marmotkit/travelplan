@@ -2,16 +2,15 @@ import axios from 'axios';
 
 // 創建 axios 實例
 const api = axios.create({
-  // 使用 Cloudflare Worker URL 作為基礎 URL
-  baseURL: 'https://hidden-violet-c79a.y134679.workers.dev',
+  // 直接使用後端 API URL
+  baseURL: 'https://travel-planner-api.onrender.com',
   // 允許跨域請求攜帶憑證
   withCredentials: true,
-  // 請求超時時間（增加到 30 秒）
+  // 請求超時時間（30 秒）
   timeout: 30000,
   // 請求頭
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
     'X-Request-ID': crypto.randomUUID()
   }
 });
@@ -21,10 +20,6 @@ api.interceptors.request.use(
   (config) => {
     // 每個請求都生成新的請求 ID
     config.headers['X-Request-ID'] = crypto.randomUUID();
-    
-    // 確保請求接受 JSON 響應
-    config.headers['Accept'] = 'application/json';
-    
     return config;
   },
   (error) => {
