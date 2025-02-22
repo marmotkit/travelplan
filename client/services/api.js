@@ -12,7 +12,7 @@ const api = axios.create({
     'X-Request-ID': crypto.randomUUID()
   },
   // 允許跨域請求
-  withCredentials: false
+  withCredentials: true
 });
 
 // 請求攔截器
