@@ -2,8 +2,8 @@ import axios from 'axios';
 
 // 創建 axios 實例
 const api = axios.create({
-  // 使用相對路徑，這樣會自動使用當前域名
-  baseURL: '/api',
+  // 使用環境變數中的 API URL
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5001',
   // 請求超時時間（30 秒）
   timeout: 30000,
   // 請求頭
