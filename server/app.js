@@ -16,21 +16,17 @@ const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
-// CORS 中間件
+// 最簡單的 CORS 設置 - 允許所有來源
 app.use((req, res, next) => {
-  // 允許的來源
-  res.header('Access-Control-Allow-Origin', 'https://travel-planner-web.onrender.com');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Request-ID');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Max-Age', '86400');
-
-  // 處理 OPTIONS 請求
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end();
-  }
-
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', '*');
+  res.header('Access-Control-Allow-Headers', '*');
   next();
+});
+
+// 處理 OPTIONS 請求
+app.options('*', (req, res) => {
+  res.status(200).end();
 });
 
 // 其他中間件
