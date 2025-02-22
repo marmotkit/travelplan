@@ -181,6 +181,19 @@ process.on('uncaughtException', (error) => {
   });
 });
 
+// CORS 錯誤處理
+app.use((err, req, res, next) => {
+  if (err.name === 'CORSError') {
+    console.error('CORS 錯誤:', {
+      error: err.message,
+      origin: req.headers.origin,
+      method: req.method
+    });
+    return res.status(403).json({ error: 'CORS 請求被拒絕' });
+  }
+  next(err);
+});
+
 // 錯誤處理中間件
 app.use((err, req, res, next) => {
   console.error('錯誤處理中間件:', {

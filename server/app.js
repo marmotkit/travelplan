@@ -16,7 +16,22 @@ const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
-// 基本中間件
+// CORS 配置必須在其他中間件之前
+app.use(cors({
+  origin: 'https://travel-planner-web.onrender.com',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
+  exposedHeaders: ['Content-Length', 'X-Request-ID'],
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+  maxAge: 86400
+}));
+
+// OPTIONS 請求處理
+app.options('*', cors());
+
+// 其他中間件
 app.use(express.json());
 app.use(morgan('dev'));
 app.use(helmet({
@@ -27,15 +42,6 @@ app.use(compression());
 
 // Serve 靜態文件
 app.use(express.static(path.join(__dirname, '../client/dist')));
-
-// CORS 配置
-app.use(cors({
-  origin: '*',  // 暫時允許所有來源
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
-  credentials: true,
-  maxAge: 86400
-}));
 
 // API 中間件
 const apiMiddleware = (req, res, next) => {
