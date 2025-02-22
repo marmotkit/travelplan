@@ -17,23 +17,32 @@ const userRoutes = require('./routes/userRoutes');
 const app = express();
 
 // CORS 配置必須在其他中間件之前
-app.use(cors({
+const corsOptions = {
   origin: 'https://travel-planner-web.onrender.com',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
   credentials: true,
-  maxAge: 86400
-}));
+  maxAge: 86400,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+};
 
-// 確保 OPTIONS 請求能正確響應
-app.options('*', cors());
+app.use(cors(corsOptions));
 
-// 添加額外的 CORS 頭
+// 確保所有響應都包含 CORS 標頭
 app.use((req, res, next) => {
+  // 添加必要的 CORS 標頭
   res.header('Access-Control-Allow-Origin', 'https://travel-planner-web.onrender.com');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Request-ID');
   res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // 如果是 OPTIONS 請求，直接返回 204
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Request-ID');
+    res.header('Access-Control-Max-Age', '86400');
+    return res.status(204).end();
+  }
+  
   next();
 });
 
