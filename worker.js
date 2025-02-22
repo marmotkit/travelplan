@@ -11,19 +11,22 @@ async function handleRequest(request) {
     'Access-Control-Allow-Credentials': 'true',
   }
 
-  // 處理 OPTIONS 請求
-  if (request.method === 'OPTIONS') {
-    return new Response(null, {
-      headers: corsHeaders
-    })
-  }
-
   try {
     // 構建目標 URL
     const url = new URL(request.url)
     const targetUrl = new URL('https://travel-planner-api.onrender.com' + url.pathname + url.search)
     
-    console.log('Proxying request to:', targetUrl.toString())
+    console.log('Request URL:', request.url)
+    console.log('Target URL:', targetUrl.toString())
+    console.log('Request method:', request.method)
+    console.log('Request headers:', Object.fromEntries(request.headers))
+
+    // 處理 OPTIONS 請求
+    if (request.method === 'OPTIONS') {
+      return new Response(null, {
+        headers: corsHeaders
+      })
+    }
 
     // 創建新的請求
     const proxyRequest = new Request(targetUrl, {
@@ -36,14 +39,21 @@ async function handleRequest(request) {
     // 發送請求到目標服務器
     const response = await fetch(proxyRequest)
     
+    console.log('Response status:', response.status)
+    console.log('Response headers:', Object.fromEntries(response.headers))
+    
+    // 讀取響應內容
+    const responseText = await response.text()
+    console.log('Response text:', responseText.substring(0, 200))
+
     // 檢查響應狀態
     if (!response.ok) {
-      console.error('API response not ok:', response.status, response.statusText)
       return new Response(
         JSON.stringify({
           error: 'API Error',
           status: response.status,
-          message: response.statusText
+          message: response.statusText,
+          details: responseText.substring(0, 200)
         }),
         {
           status: response.status,
@@ -55,65 +65,40 @@ async function handleRequest(request) {
       )
     }
 
-    // 讀取響應內容
-    const contentType = response.headers.get('Content-Type') || ''
-    const responseText = await response.text()
-
-    // 如果是 JSON 響應
-    if (contentType.includes('application/json')) {
-      try {
-        // 嘗試解析 JSON
-        JSON.parse(responseText)
-        // 如果成功解析，直接返回原始響應
-        return new Response(responseText, {
-          status: response.status,
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json'
-          }
-        })
-      } catch (e) {
-        console.error('Failed to parse JSON response:', e)
-        return new Response(
-          JSON.stringify({
-            error: 'Invalid JSON',
-            message: 'Failed to parse API response as JSON',
-            data: responseText.substring(0, 100) + '...' // 只返回前 100 個字符
-          }),
-          {
-            status: 500,
-            headers: {
-              ...corsHeaders,
-              'Content-Type': 'application/json'
-            }
-          }
-        )
-      }
-    }
-
-    // 如果不是 JSON 響應，返回錯誤
-    console.error('Unexpected content type:', contentType)
-    return new Response(
-      JSON.stringify({
-        error: 'Invalid Content Type',
-        message: `Expected application/json but got ${contentType}`,
-        data: responseText.substring(0, 100) + '...' // 只返回前 100 個字符
-      }),
-      {
-        status: 500,
+    // 嘗試解析為 JSON
+    try {
+      JSON.parse(responseText)
+      return new Response(responseText, {
+        status: 200,
         headers: {
           ...corsHeaders,
           'Content-Type': 'application/json'
         }
-      }
-    )
-
+      })
+    } catch (e) {
+      console.error('JSON parse error:', e)
+      return new Response(
+        JSON.stringify({
+          error: 'Invalid JSON',
+          message: 'Failed to parse API response as JSON',
+          data: responseText.substring(0, 200)
+        }),
+        {
+          status: 500,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+    }
   } catch (error) {
     console.error('Worker error:', error)
     return new Response(
       JSON.stringify({
         error: 'Worker Error',
-        message: error.message
+        message: error.message,
+        stack: error.stack
       }),
       {
         status: 500,
