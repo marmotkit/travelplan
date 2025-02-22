@@ -14,12 +14,27 @@ async function handleRequest(request) {
   try {
     // 構建目標 URL
     const url = new URL(request.url)
-    const targetUrl = new URL('https://travel-planner-api.onrender.com' + url.pathname + url.search)
+    const apiPath = url.pathname
+    
+    // 檢查是否是 API 請求
+    if (!apiPath.startsWith('/api/')) {
+      return new Response(JSON.stringify({
+        error: 'Invalid Path',
+        message: 'Path must start with /api/'
+      }), {
+        status: 400,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      })
+    }
+
+    const targetUrl = new URL('https://travel-planner-api.onrender.com' + apiPath + url.search)
     
     console.log('Request URL:', request.url)
     console.log('Target URL:', targetUrl.toString())
     console.log('Request method:', request.method)
-    console.log('Request headers:', Object.fromEntries(request.headers))
 
     // 處理 OPTIONS 請求
     if (request.method === 'OPTIONS') {
@@ -28,10 +43,15 @@ async function handleRequest(request) {
       })
     }
 
+    // 創建新的請求頭
+    const headers = new Headers(request.headers)
+    headers.set('Origin', 'https://travel-planner-web.onrender.com')
+    headers.set('Accept', 'application/json')
+    
     // 創建新的請求
     const proxyRequest = new Request(targetUrl, {
       method: request.method,
-      headers: request.headers,
+      headers: headers,
       body: request.body,
       redirect: 'follow',
     })
@@ -46,7 +66,7 @@ async function handleRequest(request) {
     const responseText = await response.text()
     console.log('Response text:', responseText.substring(0, 200))
 
-    // 檢查響應狀態
+    // 如果響應不成功
     if (!response.ok) {
       return new Response(
         JSON.stringify({
