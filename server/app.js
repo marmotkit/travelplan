@@ -16,7 +16,7 @@ const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
-// CORS 配置必須在其他中間件之前
+// CORS 配置
 const corsOptions = {
   origin: 'https://travel-planner-web.onrender.com',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -27,6 +27,7 @@ const corsOptions = {
   optionsSuccessStatus: 204
 };
 
+// 全局啟用 CORS
 app.use(cors(corsOptions));
 
 // 確保所有響應都包含 CORS 標頭
@@ -60,7 +61,13 @@ app.use(express.static(path.join(__dirname, '../client/dist')));
 
 // API 中間件
 const apiMiddleware = (req, res, next) => {
-  // 設置響應頭部
+  // 添加 CORS 標頭
+  res.header('Access-Control-Allow-Origin', 'https://travel-planner-web.onrender.com');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Request-ID');
+  
+  // 其他標頭
   res.header({
     'Content-Type': 'application/json; charset=utf-8',
     'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
@@ -68,26 +75,13 @@ const apiMiddleware = (req, res, next) => {
     'Expires': '0'
   });
 
-  // 修改 res.json 方法
-  const originalJson = res.json;
-  res.json = function(body) {
-    // 確保響應是 JSON 格式
-    if (typeof body === 'string') {
-      try {
-        body = JSON.parse(body);
-      } catch (e) {
-        body = { data: body };
-      }
-    }
-    return originalJson.call(this, body);
-  };
-
   next();
 };
 
 // API 路由
 const apiRouter = express.Router();
 apiRouter.use(apiMiddleware);
+apiRouter.use(cors(corsOptions)); // 在 API 路由中也啟用 CORS
 
 // 註冊 API 路由
 apiRouter.use('/plans', planRoutes);
