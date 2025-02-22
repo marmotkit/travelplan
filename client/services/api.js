@@ -11,6 +11,7 @@ const api = axios.create({
   // 請求頭
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
     'X-Request-ID': crypto.randomUUID()
   }
 });
@@ -20,6 +21,10 @@ api.interceptors.request.use(
   (config) => {
     // 每個請求都生成新的請求 ID
     config.headers['X-Request-ID'] = crypto.randomUUID();
+    
+    // 確保請求接受 JSON 響應
+    config.headers['Accept'] = 'application/json';
+    
     return config;
   },
   (error) => {
