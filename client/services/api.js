@@ -6,8 +6,8 @@ const api = axios.create({
   baseURL: 'https://hidden-violet-c79a.y134679.workers.dev',
   // 允許跨域請求攜帶憑證
   withCredentials: true,
-  // 請求超時時間
-  timeout: 15000,
+  // 請求超時時間（增加到 30 秒）
+  timeout: 30000,
   // 請求頭
   headers: {
     'Content-Type': 'application/json',
@@ -32,7 +32,20 @@ api.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config;
+
+    // 如果請求超時或網絡錯誤，且未超過重試次數，則重試
+    if ((error.code === 'ECONNABORTED' || error.message.includes('Network Error')) &&
+        (!originalRequest._retry || originalRequest._retry < 3)) {
+      originalRequest._retry = (originalRequest._retry || 0) + 1;
+      console.log(`重試請求 (${originalRequest._retry}/3):`, originalRequest.url);
+      
+      // 等待一段時間後重試
+      await new Promise(resolve => setTimeout(resolve, 1000 * originalRequest._retry));
+      return api(originalRequest);
+    }
+
     // 統一錯誤處理
     console.error('API 請求失敗:', error);
     return Promise.reject(error);
