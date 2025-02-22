@@ -50,21 +50,27 @@ api.interceptors.response.use(
   }
 );
 
+// 儀表板相關 API
+export const dashboardAPI = {
+  getSummary: () => api.get('dashboard/summary'),
+  getStats: () => api.get('dashboard/stats')
+};
+
 // 旅行計劃相關 API
 export const planAPI = {
-  getPlans: () => api.get('/plans'),
-  getPlan: (id) => api.get(`/plans/${id}`),
-  createPlan: (data) => api.post('/plans', data),
-  updatePlan: (id, data) => api.put(`/plans/${id}`, data),
-  deletePlan: (id) => api.delete(`/plans/${id}`)
+  getPlans: () => api.get('plans'),
+  getPlan: (id) => api.get(`plans/${id}`),
+  createPlan: (data) => api.post('plans', data),
+  updatePlan: (id, data) => api.put(`plans/${id}`, data),
+  deletePlan: (id) => api.delete(`plans/${id}`)
 };
 
 // 行程項目相關 API
 export const tripItemAPI = {
-  getTripItems: (planId) => api.get(`/trip-items?planId=${planId}`),
-  createTripItem: (data) => api.post('/trip-items', data),
-  updateTripItem: (id, data) => api.put(`/trip-items/${id}`, data),
-  deleteTripItem: (id) => api.delete(`/trip-items/${id}`)
+  getTripItems: (planId) => api.get(`trip-items?planId=${planId}`),
+  createTripItem: (data) => api.post('trip-items', data),
+  updateTripItem: (id, data) => api.put(`trip-items/${id}`, data),
+  deleteTripItem: (id) => api.delete(`trip-items/${id}`)
 };
 
 // 住宿相關 API
@@ -81,12 +87,6 @@ export const budgetAPI = {
   createBudget: (data) => api.post('/budgets', data),
   updateBudget: (id, data) => api.put(`/budgets/${id}`, data),
   deleteBudget: (id) => api.delete(`/budgets/${id}`)
-};
-
-// 儀表板相關 API
-export const dashboardAPI = {
-  getSummary: () => api.get('/dashboard/summary'),
-  getStats: () => api.get('/dashboard/stats')
 };
 
 // 旅行資訊相關 API
