@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const morgan = require('morgan');
 const helmet = require('helmet');
 const compression = require('compression');
+const path = require('path');
 const cors = require('cors');
 const { auth } = require('./middleware/auth');
 const planRoutes = require('./routes/planRoutes');
@@ -24,19 +25,8 @@ app.use(helmet({
 }));
 app.use(compression());
 
-// CORS 配置
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://travel-planner-web.onrender.com');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Request-ID');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Max-Age', '86400');
-  
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end();
-  }
-  next();
-});
+// Serve 靜態文件
+app.use(express.static(path.join(__dirname, '../client/dist')));
 
 // API 中間件
 const apiMiddleware = (req, res, next) => {
@@ -95,6 +85,13 @@ app.get('/', (req, res) => {
   });
 });
 
+// 所有其他請求返回 index.html
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+  }
+});
+
 // 404 處理
 app.use((req, res) => {
   res.status(404).json({ error: 'Not Found' });
@@ -104,27 +101,9 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   console.error('錯誤:', err);
   
-  // CORS 錯誤處理
-  if (err.message === 'Not allowed by CORS') {
-    return res.status(403).json({
-      error: 'CORS Error',
-      message: 'Origin not allowed'
-    });
-  }
-  
   res.status(err.status || 500).json({
     error: err.message || 'Internal Server Error'
   });
-});
-
-// 啟動時打印配置
-console.log('CORS 配置:', {
-  allowedOrigins: ['https://travel-planner-web.onrender.com'],
-  methods: ['GET, POST, PUT, DELETE, PATCH, OPTIONS'],
-  allowedHeaders: ['Content-Type, Authorization, X-Request-ID'],
-  exposedHeaders: ['Content-Type, X-Request-ID'],
-  credentials: 'true',
-  maxAge: '86400'
 });
 
 module.exports = app;
